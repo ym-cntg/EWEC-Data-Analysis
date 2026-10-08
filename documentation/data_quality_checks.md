@@ -28,7 +28,7 @@ All notebooks are **read-only** against the shared tables.
 | 2 | `02_dq_bronze_solcast` (run once per site) | Forecasts or actuals?; Solcast timezone |
 | 3 | `04_dq_source_alignment` | Timezone offset between sources; which plant is PV1/PV2 |
 | 4 | `03_dq_silver_masking` | How much missing data Silver turns into zeros |
-| 5 | `05_dq_reuniwatt_source` | Which tables are in `ewec_dev_reuniwatt` and how good they are |
+| 5 | `05_dq_reuniwatt_facts` (run once per fact table) | Is the Reuniwatt forecast data complete, on time and consistent with PV and Solcast? |
 
 ### Thresholds used (from the pipeline code)
 
@@ -134,7 +134,7 @@ This measures how much of the "zero generation" in Silver is really missing data
 
 ## 04 · Source alignment
 
-**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`)
+**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`) For the Reuniwatt forecast fact tables, use notebook 05 section 11 instead: those tables hold several runs per timestamp.
 
 All results use Bronze (upstream) site labels.
 
@@ -148,15 +148,35 @@ All results use Bronze (upstream) site labels.
 
 ---
 
-## 05 · Reuniwatt historical source
+## 05 · Reuniwatt forecast fact tables
 
-**Catalog:** `ewec_dev_reuniwatt` (referred to as "renewal" in meetings)
-**Widgets:** `reuniwatt_table`, `ts_col`, `site_col` (optional), `compare_site`
+**Tables:** `ewec_dev_reuniwatt.silver.fact_solar_irradiance`, `ewec_dev_reuniwatt.silver.fact_solar_power_forecast` (plus `_backup` copies and the `dim_forecast_product` / `dim_pv_site` dimensions)
+**Widgets:** `fact_table` (run once for each table), `main_col` (blank = `ghi` for irradiance, the power column for power)
 
-This decides whether the new source can replace or supplement Solcast.
+This decides whether Reuniwatt ("renewal" in meetings) can replace or supplement Solcast.
+
+These are **forecast** tables, not a single time series. Each row is one forecast **run**, identified by `reference_time` (issue time), for one target period, `period_end`. Rows are split by `site` (pv1/pv2), `provider`, `horizon` (intraday/dayahead/weekahead) and `granularity_min`. Each of those combinations is called a **segment** below, and most checks report one row per segment.
+
+> The column comment on `period_end` says "Forecast reference/issue time", the same as `reference_time`. Section 3 checks which one is really the target time.
 
 | Section | What it checks | How to read it | Red flags |
 |---|---|---|---|
+| Setup | Key columns, value columns, main column | Prints what the notebook detected | Key columns missing; wrong main column (set `main_col`) |
+| 0. Context | Dimension tables; load history; main vs. `_backup` row and key differences | Shows the products and sites; how and when the table is loaded | Keys only in the backup (rows lost on reload); no recent loads |
+| 1. Segments overview | Rows, runs, first/last issue time, first/last target time per segment; null key columns | Which products exist and how much history each has | Null keys; segments with very few runs or short history; last issue long ago (feed stopped) |
+| 2. Duplicate keys | Repeated (site, provider, horizon, granularity, reference_time, period_end) | Should be 0 | Duplicates, especially conflicting ones; they double-count in any join |
+| 3. Lead time | `period_end − reference_time`: min/median/max per segment; rows with lead ≤ 0 | Lead should be positive and fit the horizon: intraday = hours, dayahead ≈ 1–2 days, weekahead ≤ ~7 days | **Lead always 0:** `period_end` is the issue time, not the target. **Lead < 0:** past targets (hindcasts) mixed in; these must be excluded from backtests or they leak. |
+| 4. Issue cadence | Usual gap between runs per segment; gaps > 1.5× cadence | `cadence_min` = schedule (e.g. 15/60/1440). `approx_missing_runs` = runs that never arrived. | Many missing runs; long outages (listed longest first) |
+| 5. Run completeness | Target periods per run vs. the segment median; irregular steps within a run | `short_runs` = truncated deliveries; `irregular_steps` = gaps inside a run | High `short_pct`; non-zero `irregular_steps` |
+| 6. Target-time coverage | % of `period_end` slots covered by at least one run; days below 99% | First and last days are naturally partial | Low coverage. If **intraday** misses only night hours, that may be by design. Check the times of day in the low days. |
+| 7. Null rates | Null % per value column, by horizon and day/night | Day/night uses `zenith` or `clearsky_ghi` if present, otherwise "all" | Daytime nulls in the main column |
+| 8. Validity | Stats; irradiance rules (as in 02); power < 0, > 1700 MW, or > 1 MW at night; quantile crossing (p10 > p50 …); negative lead | `violations` and `pct` per rule. Edit the sample cell to see rows. | Any power or quantile violations; irradiance at night |
+| 9. Stale runs | Runs whose non-zero values all equal the previous run's for the same targets | `stale_pct` per segment | Stale runs mean the provider re-sent an old forecast as new |
+| 10. Timezone | Peak hour of the main value per site | ~08 = UTC, ~12 = Asia/Dubai | A different convention from PV (01) or Solcast (02) |
+| 11. Against observations | Latest run per target vs. Bronze PV (both columns) and Solcast GHI (both sites), averaged to the same granularity: `n`, `corr`, `bias`, `mae` | **Site mapping:** which reference correlates best with `pv1`/`pv2`. **Accuracy:** bias/MAE against the matching reference (PV for power, Solcast GHI for irradiance). Nights are included, so compare correlations relative to each other. | `pv1` matching the "wrong" PV column (record it; the Bronze→Silver swap also applies); large bias; low correlation |
+| 11. Time offset | Hourly lag scan ±6 h vs. Bronze PV | Best `offset_h` should be 0 | ±4 h = UTC vs. Asia/Dubai mismatch; ±1 h = period-start vs. period-end labelling |
+
+---|---|---|---|
 | 0. Inventory | Lists every table in `ewec_dev_reuniwatt` with its columns and types | Pick the table holding historical irradiance, and its timestamp and site columns, for the widgets | Empty or permission error: ask Harish for access
 | Setup | Schema; table details; which Solcast columns it has | Shows which features the new source can provide | Key columns missing (`ghi`, `dni`, `dhi`, `clearsky_ghi`, `zenith`) |
 | 1. Range, duplicates, interval | As for Solcast | Note the native interval and history length | Shorter history than Solcast; duplicates |

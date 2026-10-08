@@ -107,28 +107,7 @@ display(column_stats(sc, present(sc, SOLCAST_COLS)))
 
 # COMMAND ----------
 
-irr = present(sc, IRRADIANCE_COLS)
-rules = {
-    "negative_irradiance": (" OR ".join(f"{c} < 0" for c in irr) or "false", irr),
-    "irradiance_at_night": ("zenith > 90 AND (ghi > 5 OR dni > 5 OR dhi > 5)", ["zenith", "ghi", "dni", "dhi"]),
-    "clearsky_at_night": ("zenith > 90 AND clearsky_ghi > 5", ["zenith", "clearsky_ghi"]),
-    "ghi_far_above_clearsky": ("ghi > clearsky_ghi * 1.2 AND ghi - clearsky_ghi > 50", ["ghi", "clearsky_ghi"]),
-    "dni_far_above_clearsky": ("dni > clearsky_dni * 1.2 AND dni - clearsky_dni > 50", ["dni", "clearsky_dni"]),
-    "ghi_closure_error": (
-        "zenith < 85 AND abs(ghi - (dni * cos(radians(zenith)) + dhi)) > greatest(50, 0.1 * ghi)",
-        ["ghi", "dni", "dhi", "zenith"],
-    ),
-    "cloud_opacity_out_of_0_100": ("cloud_opacity < 0 OR cloud_opacity > 100", ["cloud_opacity"]),
-    "rh_out_of_0_100": ("relative_humidity < 0 OR relative_humidity > 100", ["relative_humidity"]),
-    "zenith_out_of_0_180": ("zenith < 0 OR zenith > 180", ["zenith"]),
-    "azimuth_out_of_range": ("azimuth < -180 OR azimuth > 360", ["azimuth"]),
-    "albedo_out_of_0_1": ("albedo < 0 OR albedo > 1", ["albedo"]),
-    "air_temp_implausible": ("air_temp < -5 OR air_temp > 60", ["air_temp"]),
-    "dewpoint_above_air_temp": ("dewpoint_temp > air_temp + 0.5", ["dewpoint_temp", "air_temp"]),
-    "wind_out_of_range": ("wind_speed_10m < 0 OR wind_speed_10m > 50", ["wind_speed_10m"]),
-    "precip_negative": ("precipitation_rate < 0", ["precipitation_rate"]),
-}
-display(save(rule_counts(sc, rules), f"{tag}_rules"))
+display(save(rule_counts(sc, weather_rules(sc)), f"{tag}_rules"))
 
 # COMMAND ----------
 

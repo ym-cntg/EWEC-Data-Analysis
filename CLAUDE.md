@@ -25,7 +25,8 @@ Weather inputs come from two possible sources: **Solcast** (current) and the new
 | `ewec_dev_powerops.bronze.power_contango_minute_pv` | 1-min PV telemetry: `DateTime`, `PV1_MW`, `PV2_MW` |
 | `ewec_dev_powerops.bronze.pv1_history_solcast` | Solcast irradiance/weather for PV1, keyed on `period_end` |
 | `ewec_dev_powerops.bronze.pv2_history_solcast` | Same for PV2 (`relative_humidity` effectively unused) |
-| `ewec_dev_reuniwatt.*` | Reuniwatt historical weather/irradiance. Schema and table names TBD; notebook 05 lists them |
+| `ewec_dev_reuniwatt.silver.fact_solar_irradiance` | Reuniwatt irradiance forecasts: `site` (pv1/pv2), `provider`, `horizon` (intraday/dayahead/weekahead), `reference_time` (issue), `period_end`, `granularity_min` |
+| `ewec_dev_reuniwatt.silver.fact_solar_power_forecast` | Reuniwatt power forecasts (same keys). `_backup` copies, `dim_forecast_product` and `dim_pv_site` also exist |
 
 ### Silver
 - `ewec_dev_powerops.silver.uc2_solar_5min` / `_15min` / `_hourly` are Bronze→Silver outputs. Only `_5min` is actually consumed downstream.
@@ -98,7 +99,8 @@ For each Bronze table, and for the Reuniwatt tables:
 
 ## Open questions
 
-- [x] Reuniwatt source is catalog `ewec_dev_reuniwatt` (exact schema/table still to confirm)
+- [x] Reuniwatt tables: `ewec_dev_reuniwatt.silver.fact_solar_irradiance`, `fact_solar_power_forecast`
+- [ ] Reuniwatt `site` pv1/pv2: which Bronze PV column does each match? (notebook 05, section 11)
 - [ ] Bronze timestamp timezone (UTC vs. Asia/Dubai)
 - [ ] Are Solcast history rows forecasts (with issue time) or estimated actuals?
 - [ ] Site nameplate capacities for PV1 and PV2
