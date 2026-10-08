@@ -28,6 +28,7 @@ dbutils.widgets.text("pv_shift_h", "0", "Shift Bronze PV by (hours)")
 TABLE = f"{REUNIWATT_SILVER}.fact_solar_power_forecast"
 IRR_TABLE = f"{REUNIWATT_SILVER}.fact_solar_irradiance"
 tag = "reuniwatt_power"
+notes_init(tag)
 TZ = dbutils.widgets.get("timestamps_tz")
 PV_SHIFT_H = int(dbutils.widgets.get("pv_shift_h"))
 
@@ -35,8 +36,8 @@ P = ["power_mw", "power_p10_mw", "power_p90_mw", "power_mw_original"]
 
 raw = spark.table(TABLE)
 raw.printSchema()
-print("Expected columns missing:", [c for c in FC_KEY + P + ["quality_flag", "forecast_day_offset", "_source", "_ingested_at"] if c not in raw.columns])
-print("Unexpected columns:", [c for c in raw.columns if c not in FC_KEY + P + ["quality_flag"] + FC_META])
+note("missing_columns", [c for c in FC_KEY + P + ["quality_flag", "forecast_day_offset", "_source", "_ingested_at"] if c not in raw.columns])
+note("unexpected_columns", [c for c in raw.columns if c not in FC_KEY + P + ["quality_flag"] + FC_META])
 
 df = add_solar_geometry(prep_forecast(raw), tz_offset_h=TZ_OFFSET_H[TZ])
 
@@ -47,18 +48,18 @@ df = add_solar_geometry(prep_forecast(raw), tz_offset_h=TZ_OFFSET_H[TZ])
 # COMMAND ----------
 
 for d in ["dim_forecast_product", "dim_pv_site"]:
-    print(d)
-    display(spark.table(f"{REUNIWATT_SILVER}.{d}"))
+    display(save(spark.table(f"{REUNIWATT_SILVER}.{d}"), f"reuniwatt_{d}"))
 
 # COMMAND ----------
 
-display(spark.sql(f"DESCRIBE HISTORY {TABLE}").select("version", "timestamp", "operation", "operationParameters", "operationMetrics").limit(30))
+display(save(spark.sql(f"DESCRIBE HISTORY {TABLE}").select("version", "timestamp", "operation", "operationParameters").limit(30), f"{tag}_history"))
 
 # COMMAND ----------
 
 bk_summary, bk_snaps = fc_backup_compare(df, f"{TABLE}_backup")
-display(bk_summary)
-display(bk_snaps)
+display(save(bk_summary, f"{tag}_backup_compare"))
+if bk_snaps is not None:
+    display(save(bk_snaps, f"{tag}_backup_snapshots"))
 
 # COMMAND ----------
 
@@ -67,8 +68,8 @@ display(bk_snaps)
 # COMMAND ----------
 
 display(save(fc_overview(df), f"{tag}_segments"))
-display(df.groupBy("_source").agg(F.count("*").alias("rows"), F.min("reference_time").alias("first_issue"), F.max("reference_time").alias("last_issue"), F.collect_set("horizon").alias("horizons")))
-display(rule_counts(df, {f"null_{c}": (f"{c} IS NULL", [c]) for c in FC_KEY}))
+display(save(df.groupBy("_source").agg(F.count("*").alias("rows"), F.min("reference_time").alias("first_issue"), F.max("reference_time").alias("last_issue"), F.collect_set("horizon").alias("horizons")), f"{tag}_sources"))
+display(save(rule_counts(df, {f"null_{c}": (f"{c} IS NULL", [c]) for c in FC_KEY}), f"{tag}_key_nulls"))
 
 # COMMAND ----------
 
@@ -83,7 +84,7 @@ display(save(qf.orderBy("horizon", F.desc("rows")), f"{tag}_quality_flags"))
 # COMMAND ----------
 
 dups = duplicate_timestamps(df, FC_KEY, P)
-print("Duplicate keys:", dups.count(), "| conflicting values:", dups.where("distinct_value_sets > 1").count())
+note("duplicate_keys", dup_note(dups))
 display(dups.limit(50))
 
 # COMMAND ----------
@@ -94,8 +95,8 @@ display(dups.limit(50))
 
 display(save(fc_lead(df), f"{tag}_lead_time"))
 dist, mismatch = fc_day_offset_check(df)
-display(dist)
-display(mismatch)
+display(save(dist, f"{tag}_day_offset_dist"))
+display(save(mismatch, f"{tag}_day_offset_mismatch"))
 
 # COMMAND ----------
 
@@ -144,7 +145,7 @@ display(save(null_rates(df, P + ["quality_flag"], F.concat_ws(" / ", "horizon", 
 # COMMAND ----------
 
 display(save(column_stats(df, P), f"{tag}_column_stats"))
-display(df.groupBy("site").agg(*[F.percentile_approx(c, 0.999).alias(f"{c}_p999") for c in P], *[F.max(c).alias(f"{c}_max") for c in P]))
+display(save(df.groupBy("site").agg(*[F.percentile_approx(c, 0.999).alias(f"{c}_p999") for c in P], *[F.max(c).alias(f"{c}_max") for c in P]), f"{tag}_capacity_hint"))
 
 # COMMAND ----------
 
@@ -228,7 +229,9 @@ display(stale.limit(100))
 base = prep_forecast(raw)
 tz_rows = [(tz, add_solar_geometry(base, tz_offset_h=off).where(f"daypart = 'night' AND power_mw > {DROPOUT_PV_MW}").count()) for tz, off in TZ_OFFSET_H.items()]
 display(save(spark.createDataFrame(tz_rows, "assumed_tz string, night_rows_with_power long"), f"{tag}_timezone_test"))
-display(peak_hour_by_site(df, "power_mw"))
+display(save(peak_hour_by_site(df, "power_mw"), f"{tag}_peak_hours"))
+note("timestamps_tz_used", TZ)
+note("pv_shift_h_used", PV_SHIFT_H)
 
 # COMMAND ----------
 
@@ -249,13 +252,12 @@ display(peak_hour_by_site(df, "power_mw"))
 latest = fc_latest(df)
 lag = lag_scan_vs_pv(latest, "power_mw")
 display(save(lag.orderBy("site", "pv_col", "offset_h"), f"{tag}_lag_scan_vs_pv"))
-display(best_rows(lag, ["site", "pv_col"], "corr"))
+display(save(best_rows(lag, ["site", "pv_col"], "corr"), f"{tag}_lag_best"))
 
 # COMMAND ----------
 
 mapping = best_rows(lag.where("offset_h = 0"), ["site"], "corr").select("site", "pv_col", "corr")
-print("Mapping used below (best correlation at offset 0). Check it against the lag scan:")
-display(mapping)
+display(save(mapping, f"{tag}_site_mapping"))
 SITE_TO_PV = {r["site"]: r["pv_col"] for r in mapping.collect()}
 
 # COMMAND ----------
@@ -291,9 +293,9 @@ display(save(accuracy, f"{tag}_accuracy_vs_pv"))
 irr = prep_forecast(spark.table(IRR_TABLE))
 run_key = FC_SEG + ["reference_time"]
 rp, ri = df.select(*run_key).distinct(), irr.select(*run_key).distinct()
-display(rp.join(ri, run_key, "left_anti").groupBy(*FC_SEG).agg(F.count("*").alias("runs_only_in_power"))
+display(save(rp.join(ri, run_key, "left_anti").groupBy(*FC_SEG).agg(F.count("*").alias("runs_only_in_power"))
         .join(ri.join(rp, run_key, "left_anti").groupBy(*FC_SEG).agg(F.count("*").alias("runs_only_in_irradiance")), FC_SEG, "full")
-        .fillna(0).orderBy(*FC_SEG))
+        .fillna(0).orderBy(*FC_SEG), f"{tag}_run_overlap_with_irradiance"))
 
 j = df.where("daypart = 'day'").join(irr.select(*FC_KEY, "ghi_wm2", "gti_wm2"), FC_KEY)
 display(save(j.groupBy("site", "horizon").agg(

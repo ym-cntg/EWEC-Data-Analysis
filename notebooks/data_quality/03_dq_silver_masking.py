@@ -21,6 +21,7 @@ dbutils.widgets.text("silver_pv_col", "PV_MW", "Silver PV column")
 
 # COMMAND ----------
 
+notes_init("silver")
 TS_S = dbutils.widgets.get("silver_ts_col")
 SITE_S = dbutils.widgets.get("silver_site_col")
 PV_S = dbutils.widgets.get("silver_pv_col")
@@ -35,9 +36,9 @@ silver = silver_raw.select(
     F.col("clearsky_ghi"),
 ).withColumn("is_day", F.col("clearsky_ghi") > DAYTIME_CLEARSKY_GHI)
 
-display(time_range(silver, "ts", ["site"]))
-print("Duplicate (site, ts):", duplicate_timestamps(silver, ["site", "ts"]).count())
-print("Null PV in Silver (expect 0 because of coalesce):", silver.where("silver_pv IS NULL").count())
+display(save(time_range(silver, "ts", ["site"]), "silver_range"))
+note("duplicate_site_ts", duplicate_timestamps(silver, ["site", "ts"]).count())
+note("null_pv_in_silver", silver.where("silver_pv IS NULL").count())
 
 # COMMAND ----------
 
@@ -85,9 +86,9 @@ display(save(alignment, "silver_bronze_alignment"))
 
 best = alignment.where("mapping = 'swapped'").orderBy(F.desc("corr")).first()
 CONVENTION = best["convention"]
-print(f"Using swapped mapping with {CONVENTION} convention (corr={best['corr']}).")
+note("convention_used", f"swapped mapping, {CONVENTION} (corr={best['corr']})")
 if alignment.orderBy(F.desc("corr")).first()["mapping"] != "swapped":
-    print("⚠️ The unswapped mapping correlates better. Check the swap assumption.")
+    note("WARNING", "unswapped mapping correlates better than swapped")
 
 shift = 0 if CONVENTION == "bucket_start" else 300
 bronze = bronze_5min(SWAPPED).withColumn("ts", F.timestamp_seconds(F.unix_timestamp("bucket_start") + shift))
@@ -144,11 +145,11 @@ runs = (
     .groupBy("site", "run_id").agg(F.min("ts").alias("start"), F.max("ts").alias("end"), F.count("*").alias("steps_5min"))
     .drop("run_id")
 )
-display(runs.groupBy("site").agg(
+display(save(runs.groupBy("site").agg(
     F.count("*").alias("runs"),
     F.sum((F.col("steps_5min") > 6).cast("int")).alias("runs_longer_than_30min"),
     F.sum(F.when(F.col("steps_5min") > 6, F.col("steps_5min"))).alias("steps_in_long_runs"),
-))
+), "silver_masked_runs_summary"))
 display(save(runs.orderBy(F.desc("steps_5min")), "silver_masked_runs").limit(100))
 
 # COMMAND ----------
@@ -164,6 +165,6 @@ try:
     pre_counts = pre.where(F.col("clearsky_ghi") > DAYTIME_CLEARSKY_GHI).groupBy(F.col(SITE_S).alias("site")).agg(
         F.count("*").alias("pre_daytime_rows"), F.sum((F.col(PV_S) == 0).cast("int")).alias("pre_daytime_zero_rows")
     )
-    display(summary.select("site", "daytime_rows", "daytime_zero_rows").join(pre_counts, "site", "full"))
+    display(save(summary.select("site", "daytime_rows", "daytime_zero_rows").join(pre_counts, "site", "full"), "silver_vs_preprocessed_zeros"))
 except Exception as e:
-    print("Preprocessed check skipped. Adjust column names:", e)
+    note("preprocessed_check_skipped", e)

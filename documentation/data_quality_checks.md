@@ -14,9 +14,20 @@ The checks therefore run on the raw Bronze tables. Notebook 03 then measures how
 
 ## How to run
 
-1. Open the notebooks in a Databricks Git folder. Keep all of them in the same directory.
-2. Use **Run all**. Every notebook first runs `%run ./00_dq_utils`, which defines the shared table names, thresholds (`PV_COLS`, `PV_PLAUSIBLE_MAX_MW`, …) and helper functions. If you see `NameError: PV_COLS is not defined`, that cell has not run.
-3. Optional: set the `scratch_schema` widget (for example `ewec_dev_powerops.scratch_yash`) to save summary tables as `dq_*`. Leave it empty to display results only. Writes to `bronze`, `silver` or `gold` are refused.
+### Quick path: everything, then one export
+
+1. Pull the Git folder in Databricks.
+2. Open **`00_run_all`**. Check the `scratch_schema` widget (default `ewec_dev_powerops.scratch_yash`), then **Run all**.
+   - It creates the schema if needed. If you lack permission, ask Harish for a schema you can write to.
+   - It runs 01 → 02 (PV1, PV2) → 04 → 03 → 05 → 06. A failing notebook is logged in `dq_run_log` and the rest continue.
+   - It re-runs 05 and 06 with `timestamps_tz = Asia/Dubai` if their timezone test says so, and 06 with `pv_shift_h` if PV is offset.
+3. Open **`07_dq_export`** with the same `scratch_schema`, **Run all**, and copy the output of the last cell. It is every result as one block of text, also saved to `/Workspace/Users/<you>/dq_export.txt`.
+
+Each result is saved as `<scratch_schema>.dq_<name>`, and single findings (counts, detected settings) as `dq_<notebook>_notes`. Re-running replaces the tables.
+
+### Running a single notebook
+
+Open it and **Run all**. Every notebook first runs `%run ./00_dq_utils`, which defines the shared table names, thresholds (`PV_COLS`, `PV_PLAUSIBLE_MAX_MW`, …) and helpers. If you see `NameError: PV_COLS is not defined`, that cell has not run. Fill in `scratch_schema` to save results; leave it empty to only display them. Writes to `bronze`, `silver` or `gold` are refused.
 
 All notebooks are **read-only** against the shared tables.
 

@@ -19,12 +19,13 @@ dbutils.widgets.text("stuck_min_minutes", "60", "Stuck-value min run (minutes)")
 # COMMAND ----------
 
 from pyspark.sql import functions as F
+notes_init("pv")
 TS = "DateTime"
 raw = spark.table("ewec_dev_powerops.bronze.power_contango_minute_pv")
 raw.printSchema()
 
 pv = raw.select(F.col(TS).alias("_raw_ts"), F.col(TS).cast("timestamp").alias(TS), *PV_COLS)
-print("Unparseable timestamps:", pv.where(F.col("_raw_ts").isNotNull() & F.col(TS).isNull()).count())
+note("unparseable_timestamps", pv.where(F.col("_raw_ts").isNotNull() & F.col(TS).isNull()).count())
 pv = pv.drop("_raw_ts")
 
 # COMMAND ----------
@@ -36,7 +37,7 @@ pv = pv.drop("_raw_ts")
 display(save(time_range(pv, TS), "pv_range"))
 
 dups = duplicate_timestamps(pv, [TS], PV_COLS)
-print("Duplicate timestamps:", dups.count(), "| conflicting:", dups.where("distinct_value_sets > 1").count())
+note("duplicate_timestamps", dup_note(dups))
 display(dups.limit(50))
 
 # COMMAND ----------
@@ -46,10 +47,11 @@ display(dups.limit(50))
 
 # COMMAND ----------
 
-display(interval_profile(pv, TS).limit(20))
+display(save(interval_profile(pv, TS).limit(20), "pv_interval_profile"))
 
 pv_gaps = gaps(pv, TS, 1)
-print("Gaps > 1 min:", pv_gaps.count())
+note("gaps_over_1min", pv_gaps.count())
+note("missing_minutes_in_gaps", pv_gaps.agg(F.sum("missing_minutes")).first()[0])
 display(save(pv_gaps, "pv_gaps").limit(100))
 
 # COMMAND ----------
@@ -66,8 +68,9 @@ display(per_day)
 
 # COMMAND ----------
 
-print("Days below 99% for any column:")
-display(per_day.where(" OR ".join(f"{c}_pct < 99" for c in PV_COLS) + " OR timestamp_pct < 99"))
+low_days = save(per_day.where(" OR ".join(f"{c}_pct < 99" for c in PV_COLS) + " OR timestamp_pct < 99"), "pv_low_days")
+note("days_below_99pct", f"{low_days.count()} of {per_day.count()}")
+display(low_days)
 
 # COMMAND ----------
 
@@ -76,7 +79,7 @@ display(per_day.where(" OR ".join(f"{c}_pct < 99" for c in PV_COLS) + " OR times
 
 # COMMAND ----------
 
-display(null_by_hour(pv, TS, PV_COLS))
+display(save(null_by_hour(pv, TS, PV_COLS), "pv_null_by_hour"))
 
 # COMMAND ----------
 
@@ -85,7 +88,7 @@ display(null_by_hour(pv, TS, PV_COLS))
 
 # COMMAND ----------
 
-display(column_stats(pv, PV_COLS))
+display(save(column_stats(pv, PV_COLS), "pv_column_stats"))
 
 pv_rules = {}
 for c in PV_COLS:
@@ -103,7 +106,7 @@ monthly = pv.groupBy(F.date_trunc("month", TS).alias("month")).agg(
     *[F.max(c).alias(f"{c}_max") for c in PV_COLS],
     *[F.percentile_approx(c, 0.995).alias(f"{c}_p995") for c in PV_COLS],
 ).orderBy("month")
-display(monthly)
+display(save(monthly, "pv_monthly_max"))
 
 # COMMAND ----------
 
@@ -114,7 +117,7 @@ display(monthly)
 
 min_rows = int(dbutils.widgets.get("stuck_min_minutes"))
 stuck = reduce(DataFrame.unionByName, [stuck_runs(pv, TS, c, min_rows) for c in PV_COLS])
-print(f"Runs of >= {min_rows} identical non-zero values:", stuck.count())
+note(f"stuck_runs_ge_{min_rows}min", stuck.count())
 display(save(stuck, "pv_stuck_runs").limit(200))
 
 # COMMAND ----------
@@ -126,10 +129,7 @@ display(save(stuck, "pv_stuck_runs").limit(200))
 # COMMAND ----------
 
 prof = hourly_profile(pv, TS, PV_COLS)
-display(prof)
+display(save(prof, "pv_hourly_profile"))
 for c in PV_COLS:
     peak = prof.orderBy(F.desc(f"avg_{c}")).first()["hour"]
-    print(f"{c}: peak hour {peak:02d}:00 -> looks like {guess_timezone(peak)}")
-
-# COMMAND ----------
-
+    note(f"{c}_peak_hour", f"{peak:02d}:00 -> looks like {guess_timezone(peak)}")

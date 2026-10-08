@@ -25,6 +25,7 @@ dbutils.widgets.text("reuniwatt_ghi_col", "ghi", "Reuniwatt GHI column")
 
 # COMMAND ----------
 
+notes_init("alignment")
 pv = spark.table(PV_TABLE).select(F.col("DateTime").cast("timestamp").alias("ts"), *PV_COLS)
 solcast = {s: spark.table(t).select(F.col("period_end").cast("timestamp").alias("ts"), "ghi", *present(spark.table(t), ["gti", "clearsky_ghi"])) for s, t in SOLCAST_TABLES.items()}
 
@@ -45,7 +46,7 @@ ranges = reduce(DataFrame.unionByName, [time_range(df, "ts").withColumn("source"
 display(save(ranges.select("source", "min_ts", "max_ts", "rows", "distinct_ts"), "source_ranges"))
 
 r = ranges.agg(F.max("min_ts").alias("start"), F.min("max_ts").alias("end")).first()
-print(f"Common overlap window: {r.start} -> {r.end}")
+note("common_overlap_window", f"{r.start} -> {r.end}")
 
 # COMMAND ----------
 
@@ -84,14 +85,14 @@ coarse = lag_scan(60, [h * 60 for h in range(-8, 9)])
 display(save(coarse.orderBy("source", "pv_col", "offset_min"), "lag_scan_hourly"))
 
 best_coarse = coarse.withColumn("rk", F.row_number().over(Window.partitionBy("source", "pv_col").orderBy(F.desc("corr")))).where("rk = 1").drop("rk")
-display(best_coarse)
+display(save(best_coarse, "lag_best_hourly"))
 
 # COMMAND ----------
 
 center = int(best_coarse.agg(F.expr("percentile_approx(offset_min, 0.5)")).first()[0])
 fine = lag_scan(5, list(range(center - 60, center + 61, 5)))
 display(save(fine.orderBy("source", "pv_col", "offset_min"), "lag_scan_5min"))
-display(fine.withColumn("rk", F.row_number().over(Window.partitionBy("source", "pv_col").orderBy(F.desc("corr")))).where("rk = 1").drop("rk"))
+display(save(best_rows(fine, ["source", "pv_col"], "corr"), "lag_best_5min"))
 
 # COMMAND ----------
 
@@ -107,9 +108,9 @@ for name, df in [(n, d) for n, d in sources.items() if n != "pv_telemetry"]:
     j = pv_h.join(irr, "ts")
     agg = j.agg(*[F.corr(c, "ghi").alias(c) for c in PV_COLS]).first()
     mat.append((name, *[agg[c] for c in PV_COLS]))
-display(spark.createDataFrame(mat, "source string, " + ", ".join(f"{c} double" for c in PV_COLS)))
+display(save(spark.createDataFrame(mat, "source string, " + ", ".join(f"{c} double" for c in PV_COLS)), "site_mapping_corr"))
 
-print("PV1_MW vs PV2_MW corr:", pv.agg(F.corr("PV1_MW", "PV2_MW")).first()[0])
+note("PV1_MW_vs_PV2_MW_corr", pv.agg(F.corr("PV1_MW", "PV2_MW")).first()[0])
 
 # COMMAND ----------
 
@@ -118,9 +119,9 @@ print("PV1_MW vs PV2_MW corr:", pv.agg(F.corr("PV1_MW", "PV2_MW")).first()[0])
 # COMMAND ----------
 
 s1, s2 = (solcast["PV1"].select("ts", F.col("ghi").alias("ghi_pv1")), solcast["PV2"].select("ts", F.col("ghi").alias("ghi_pv2")))
-display(s1.join(s2, "ts").agg(
+display(save(s1.join(s2, "ts").agg(
     F.count("*").alias("common_ts"),
     F.round(100 * F.avg((F.col("ghi_pv1") == F.col("ghi_pv2")).cast("int")), 2).alias("identical_ghi_pct"),
     F.corr("ghi_pv1", "ghi_pv2").alias("corr"),
     F.avg(F.abs(F.col("ghi_pv1") - F.col("ghi_pv2"))).alias("mean_abs_diff"),
-))
+), "solcast_pv1_vs_pv2"))

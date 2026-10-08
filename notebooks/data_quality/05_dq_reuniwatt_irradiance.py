@@ -29,6 +29,7 @@ dbutils.widgets.text("solcast_shift_h", "0", "Shift Solcast by (hours)")
 
 TABLE = f"{REUNIWATT_SILVER}.fact_solar_irradiance"
 tag = "reuniwatt_irradiance"
+notes_init(tag)
 TZ = dbutils.widgets.get("timestamps_tz")
 SOLCAST_SHIFT_H = int(dbutils.widgets.get("solcast_shift_h"))
 
@@ -38,8 +39,8 @@ VALUES = IRR + MET
 
 raw = spark.table(TABLE)
 raw.printSchema()
-print("Expected columns missing:", [c for c in FC_KEY + VALUES + ["forecast_day_offset", "_source", "_ingested_at"] if c not in raw.columns])
-print("Unexpected columns:", [c for c in raw.columns if c not in FC_KEY + VALUES + FC_META])
+note("missing_columns", [c for c in FC_KEY + VALUES + ["forecast_day_offset", "_source", "_ingested_at"] if c not in raw.columns])
+note("unexpected_columns", [c for c in raw.columns if c not in FC_KEY + VALUES + FC_META])
 
 df = add_solar_geometry(prep_forecast(raw), tz_offset_h=TZ_OFFSET_H[TZ])
 
@@ -50,18 +51,18 @@ df = add_solar_geometry(prep_forecast(raw), tz_offset_h=TZ_OFFSET_H[TZ])
 # COMMAND ----------
 
 for d in ["dim_forecast_product", "dim_pv_site"]:
-    print(d)
-    display(spark.table(f"{REUNIWATT_SILVER}.{d}"))
+    display(save(spark.table(f"{REUNIWATT_SILVER}.{d}"), f"reuniwatt_{d}"))
 
 # COMMAND ----------
 
-display(spark.sql(f"DESCRIBE HISTORY {TABLE}").select("version", "timestamp", "operation", "operationParameters", "operationMetrics").limit(30))
+display(save(spark.sql(f"DESCRIBE HISTORY {TABLE}").select("version", "timestamp", "operation", "operationParameters").limit(30), f"{tag}_history"))
 
 # COMMAND ----------
 
 bk_summary, bk_snaps = fc_backup_compare(df, f"{TABLE}_backup")
-display(bk_summary)
-display(bk_snaps)
+display(save(bk_summary, f"{tag}_backup_compare"))
+if bk_snaps is not None:
+    display(save(bk_snaps, f"{tag}_backup_snapshots"))
 
 # COMMAND ----------
 
@@ -70,8 +71,8 @@ display(bk_snaps)
 # COMMAND ----------
 
 display(save(fc_overview(df), f"{tag}_segments"))
-display(df.groupBy("_source").agg(F.count("*").alias("rows"), F.min("reference_time").alias("first_issue"), F.max("reference_time").alias("last_issue"), F.collect_set("horizon").alias("horizons")))
-display(rule_counts(df, {f"null_{c}": (f"{c} IS NULL", [c]) for c in FC_KEY}))
+display(save(df.groupBy("_source").agg(F.count("*").alias("rows"), F.min("reference_time").alias("first_issue"), F.max("reference_time").alias("last_issue"), F.collect_set("horizon").alias("horizons")), f"{tag}_sources"))
+display(save(rule_counts(df, {f"null_{c}": (f"{c} IS NULL", [c]) for c in FC_KEY}), f"{tag}_key_nulls"))
 
 # COMMAND ----------
 
@@ -80,7 +81,7 @@ display(rule_counts(df, {f"null_{c}": (f"{c} IS NULL", [c]) for c in FC_KEY}))
 # COMMAND ----------
 
 dups = duplicate_timestamps(df, FC_KEY, ["ghi_wm2", "dni_wm2", "dhi_wm2", "ambient_temp_c"])
-print("Duplicate keys:", dups.count(), "| conflicting values:", dups.where("distinct_value_sets > 1").count())
+note("duplicate_keys", dup_note(dups))
 display(dups.limit(50))
 
 # COMMAND ----------
@@ -91,8 +92,8 @@ display(dups.limit(50))
 
 display(save(fc_lead(df), f"{tag}_lead_time"))
 dist, mismatch = fc_day_offset_check(df)
-display(dist)
-display(mismatch)
+display(save(dist, f"{tag}_day_offset_dist"))
+display(save(mismatch, f"{tag}_day_offset_mismatch"))
 
 # COMMAND ----------
 
@@ -201,10 +202,10 @@ consistency = day.groupBy("horizon").agg(
 display(save(consistency, f"{tag}_consistency"))
 
 rh_calc = 100 * magnus(F.col("dewpoint_c")) / magnus(F.col("ambient_temp_c"))
-display(df.groupBy("horizon").agg(
+display(save(df.groupBy("horizon").agg(
     F.percentile_approx(F.abs(F.col("humidity_pct") - rh_calc), [0.5, 0.95]).alias("rh_vs_dewpoint_abs_p50_p95"),
     F.sum((F.abs(F.col("humidity_pct") - rh_calc) > 10).cast("int")).alias("rh_off_by_more_than_10pts"),
-).orderBy("horizon"))
+).orderBy("horizon"), f"{tag}_humidity_consistency"))
 
 # COMMAND ----------
 
@@ -214,9 +215,8 @@ display(df.groupBy("horizon").agg(
 # COMMAND ----------
 
 gti_prof = df.groupBy("site", F.hour("period_end").alias("hour")).agg(*[F.avg(c).alias(c) for c in ["ghi_wm2", "gti_wm2", "gti_east_wm2", "gti_west_wm2"]]).orderBy("site", "hour")
-display(gti_prof)
-for c in ["ghi_wm2", "gti_east_wm2", "gti_west_wm2"]:
-    display(peak_hour_by_site(df, c).withColumn("column", F.lit(c)))
+display(save(gti_prof, f"{tag}_hourly_profile"))
+display(save(reduce(DataFrame.unionByName, [peak_hour_by_site(df, c).withColumn("column", F.lit(c)) for c in ["ghi_wm2", "gti_wm2", "gti_east_wm2", "gti_west_wm2"]]), f"{tag}_peak_hours"))
 
 # COMMAND ----------
 
@@ -238,8 +238,7 @@ for tz, off in TZ_OFFSET_H.items():
     tz_rows.append((tz, night, d["bhi"], d["kt"]))
 tz_test = spark.createDataFrame(tz_rows, "assumed_tz string, night_rows_with_ghi long, median_abs_bhi_vs_dni_cosz double, median_abs_clearness_diff double")
 display(save(tz_test, f"{tag}_timezone_test"))
-print("Peak-hour check (about 08 = UTC, about 12 = Asia/Dubai):")
-display(peak_hour_by_site(df, "ghi_wm2"))
+note("timestamps_tz_used", TZ)
 
 # COMMAND ----------
 
@@ -290,13 +289,13 @@ for gm in grans:
             F.round(F.col(f"{rc}__corr"), 4).alias("corr"), F.round(F.col(f"{rc}__bias"), 2).alias("bias"), F.round(F.col(f"{rc}__mae"), 2).alias("mae"),
         ) for rc, scc, _ in pairs])).alias("x")).select(*FC_SEG, "x.*")
         parts.append(long.withColumn("solcast_site", F.lit(s)))
-vs_solcast = reduce(DataFrame.unionByName, parts)
-display(save(vs_solcast.orderBy("reuniwatt_col", *FC_SEG, "solcast_site"), f"{tag}_vs_solcast"))
+vs_solcast = save(reduce(DataFrame.unionByName, parts).orderBy("reuniwatt_col", *FC_SEG, "solcast_site"), f"{tag}_vs_solcast")
+display(vs_solcast)
 
 # COMMAND ----------
 
 print("Site mapping: GHI correlation of each Reuniwatt site with each Solcast site (best first)")
-display(vs_solcast.where("reuniwatt_col = 'ghi_wm2'").groupBy("site", "solcast_site").agg(F.round(F.avg("corr"), 4).alias("avg_corr")).orderBy("site", F.desc("avg_corr")))
+display(save(vs_solcast.where("reuniwatt_col = 'ghi_wm2'").groupBy("site", "solcast_site").agg(F.round(F.avg("corr"), 4).alias("avg_corr")).orderBy("site", F.desc("avg_corr")), f"{tag}_site_mapping"))
 
 # COMMAND ----------
 
@@ -307,4 +306,4 @@ display(vs_solcast.where("reuniwatt_col = 'ghi_wm2'").groupBy("site", "solcast_s
 
 lag = lag_scan_vs_pv(latest, "ghi_wm2")
 display(save(lag.orderBy("site", "pv_col", "offset_h"), f"{tag}_lag_scan_vs_pv"))
-display(best_rows(lag, ["site", "pv_col"], "corr"))
+display(save(best_rows(lag, ["site", "pv_col"], "corr"), f"{tag}_lag_best"))

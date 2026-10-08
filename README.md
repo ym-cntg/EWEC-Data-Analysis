@@ -8,6 +8,8 @@ Databricks source-format notebooks. Import them via Repos, then run each one on 
 
 | Notebook | Checks |
 |---|---|
+| `00_run_all` | Runs every check below in order (with timezone/offset re-runs) and saves results to `scratch_schema` |
+| `07_dq_export` | Prints all saved results as one block of text to share |
 | `00_dq_utils` | Shared constants and helpers (loaded by the others via `%run`) |
 | `01_dq_bronze_pv_telemetry` | `bronze.power_contango_minute_pv`: range, gaps, per-day completeness, nulls by hour, negative/over-capacity values, stuck values, timezone |
 | `02_dq_bronze_solcast` | `bronze.pv{1,2}_history_solcast`: forecast vs. actuals, future rows, completeness, day/night nulls, physical validity rules, stuck values, timezone |

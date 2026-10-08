@@ -45,7 +45,7 @@ SOLAR_NOON_HOUR = {"UTC": 8, "Asia/Dubai": 12}
 # COMMAND ----------
 
 def save(df: DataFrame, name: str) -> DataFrame:
-    """Persist a result to the scratch schema if the `scratch_schema` widget is set; otherwise no-op."""
+    """Persist a result as <scratch_schema>.dq_<name> if the `scratch_schema` widget is set; otherwise return df unchanged."""
     try:
         schema = dbutils.widgets.get("scratch_schema").strip()
     except Exception:
@@ -54,9 +54,11 @@ def save(df: DataFrame, name: str) -> DataFrame:
         return df
     if schema.split(".")[-1].lower() in {"bronze", "silver", "gold"}:
         raise ValueError(f"Refusing to write DQ output into shared schema '{schema}'")
-    df.write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(f"{schema}.dq_{name}")
-    print(f"saved -> {schema}.dq_{name}")
-    return df
+    full = f"{schema}.dq_{name}"
+    # _row keeps the display order (e.g. largest gaps first) so 07_dq_export can print rows in the same order
+    df.withColumn("_row", F.monotonically_increasing_id()).write.mode("overwrite").option("overwriteSchema", "true").saveAsTable(full)
+    print(f"saved -> {full}")
+    return spark.table(full).orderBy("_row").drop("_row")  # later cells read the saved result instead of recomputing
 
 
 def present(df: DataFrame, cols):
@@ -487,3 +489,28 @@ def lag_scan_vs_pv(latest: DataFrame, col: str, hours: int = 6) -> DataFrame:
 
 def best_rows(df: DataFrame, by, order_col: str) -> DataFrame:
     return df.withColumn("_rk", F.row_number().over(Window.partitionBy(*by).orderBy(F.desc(order_col)))).where("_rk = 1").drop("_rk")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Notes: single findings (counts, detected settings) saved as `dq_<tag>_notes` for 07_dq_export
+
+# COMMAND ----------
+
+_NOTES = {"tag": None, "rows": []}
+
+
+def notes_init(tag: str):
+    _NOTES["tag"], _NOTES["rows"] = tag, []
+
+
+def note(key: str, value):
+    """Print a single finding and persist all notes so far (no-op persist without scratch_schema)."""
+    print(f"{key}: {value}")
+    _NOTES["rows"].append((key, str(value)))
+    if _NOTES["tag"]:
+        save(spark.createDataFrame(_NOTES["rows"], "key string, value string"), f"{_NOTES['tag']}_notes")
+
+
+def dup_note(dups: DataFrame) -> str:
+    return f"{dups.count()} (conflicting: {dups.where('distinct_value_sets > 1').count()})"
