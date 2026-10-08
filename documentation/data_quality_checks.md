@@ -28,7 +28,7 @@ All notebooks are **read-only** against the shared tables.
 | 2 | `02_dq_bronze_solcast` (run once per site) | Forecasts or actuals?; Solcast timezone |
 | 3 | `04_dq_source_alignment` | Timezone offset between sources; which plant is PV1/PV2 |
 | 4 | `03_dq_silver_masking` | How much missing data Silver turns into zeros |
-| 5 | `05_dq_renewal_source` | Where the renewal tables are and how good they are |
+| 5 | `05_dq_reuniwatt_source` | Which tables are in `ewec_dev_reuniwatt` and how good they are |
 
 ### Thresholds used (from the pipeline code)
 
@@ -134,7 +134,7 @@ This measures how much of the "zero generation" in Silver is really missing data
 
 ## 04 · Source alignment
 
-**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally the renewal table (`renewal_table`, `renewal_ts_col`, `renewal_ghi_col`)
+**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`)
 
 All results use Bronze (upstream) site labels.
 
@@ -148,15 +148,16 @@ All results use Bronze (upstream) site labels.
 
 ---
 
-## 05 · Renewal historical source
+## 05 · Reuniwatt historical source
 
-**Widgets:** `renewal_table`, `ts_col`, `site_col` (optional), `compare_site`
+**Catalog:** `ewec_dev_reuniwatt` (referred to as "renewal" in meetings)
+**Widgets:** `reuniwatt_table`, `ts_col`, `site_col` (optional), `compare_site`
 
 This decides whether the new source can replace or supplement Solcast.
 
 | Section | What it checks | How to read it | Red flags |
 |---|---|---|---|
-| 0. Find candidates | Searches `information_schema` for tables named like renew/weather/irrad/solar/hist | Use it to locate the tables, then confirm with Harish | Nothing found: ask Harish for the exact location |
+| 0. Inventory | Lists every table in `ewec_dev_reuniwatt` with its columns and types | Pick the table holding historical irradiance, and its timestamp and site columns, for the widgets | Empty or permission error: ask Harish for access
 | Setup | Schema; table details; which Solcast columns it has | Shows which features the new source can provide | Key columns missing (`ghi`, `dni`, `dhi`, `clearsky_ghi`, `zenith`) |
 | 1. Range, duplicates, interval | As for Solcast | Note the native interval and history length | Shorter history than Solcast; duplicates |
 | 2. Completeness | Per site if `site_col` is set: overall %, gaps, days below 99% | Compare directly with notebook 02 | Lower completeness than Solcast |
@@ -178,4 +179,4 @@ For each issue, record:
 | Impact | Becomes 0 MW in Silver; trains the model on fake outages |
 | Sample query | `SELECT * FROM … WHERE DateTime BETWEEN … AND PV1_MW IS NULL` |
 
-When a result answers an **open question** in `CLAUDE.md` (timezone, forecasts vs. actuals, capacities, PV1/PV2 mapping, renewal location), update that file.
+When a result answers an **open question** in `CLAUDE.md` (timezone, forecasts vs. actuals, capacities, PV1/PV2 mapping, Reuniwatt tables), update that file.

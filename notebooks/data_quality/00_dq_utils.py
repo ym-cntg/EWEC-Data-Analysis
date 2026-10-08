@@ -20,6 +20,7 @@ SOLCAST_TABLES = {
 }
 SILVER_5MIN = f"{CATALOG}.silver.uc2_solar_5min"
 PREPROCESSED_5MIN = f"{CATALOG}.silver.uc2_solar_preprocessed_5min"
+REUNIWATT_CATALOG = "ewec_dev_reuniwatt"
 
 PV_COLS = ["PV1_MW", "PV2_MW"]
 SOLCAST_COLS = [

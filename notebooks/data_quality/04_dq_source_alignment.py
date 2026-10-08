@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 04 · DQ — Source alignment
-# MAGIC Checks across PV telemetry, Solcast PV1/PV2 and (optionally) the renewal source:
+# MAGIC Checks across PV telemetry, Solcast PV1/PV2 and (optionally) the Reuniwatt source:
 # MAGIC 1. Date-range overlap and monthly coverage per source
 # MAGIC 2. **Time offset** between PV and irradiance, found by lag correlation. This exposes timezone or `period_end` mismatches.
 # MAGIC 3. **Site mapping**: which Solcast table tracks which Bronze PV column
@@ -11,9 +11,9 @@
 # COMMAND ----------
 
 dbutils.widgets.text("scratch_schema", "", "Scratch schema (optional, catalog.schema)")
-dbutils.widgets.text("renewal_table", "", "Renewal table (optional)")
-dbutils.widgets.text("renewal_ts_col", "", "Renewal timestamp column")
-dbutils.widgets.text("renewal_ghi_col", "ghi", "Renewal GHI column")
+dbutils.widgets.text("reuniwatt_table", "", "Reuniwatt table (optional)")
+dbutils.widgets.text("reuniwatt_ts_col", "", "Reuniwatt timestamp column")
+dbutils.widgets.text("reuniwatt_ghi_col", "ghi", "Reuniwatt GHI column")
 
 # COMMAND ----------
 
@@ -26,10 +26,10 @@ solcast = {s: spark.table(t).select(F.col("period_end").cast("timestamp").alias(
 
 sources = {"pv_telemetry": pv, **{f"solcast_{s.lower()}": df for s, df in solcast.items()}}
 
-REN = dbutils.widgets.get("renewal_table").strip()
+REN = dbutils.widgets.get("reuniwatt_table").strip()
 if REN:
-    ren_ts, ren_ghi = dbutils.widgets.get("renewal_ts_col"), dbutils.widgets.get("renewal_ghi_col")
-    sources["renewal"] = spark.table(REN).select(F.col(ren_ts).cast("timestamp").alias("ts"), F.col(ren_ghi).alias("ghi"))
+    ren_ts, ren_ghi = dbutils.widgets.get("reuniwatt_ts_col"), dbutils.widgets.get("reuniwatt_ghi_col")
+    sources["reuniwatt"] = spark.table(REN).select(F.col(ren_ts).cast("timestamp").alias("ts"), F.col(ren_ghi).alias("ghi"))
 
 # COMMAND ----------
 

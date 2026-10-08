@@ -7,9 +7,9 @@ Short-term solar PV power generation forecasting for EWEC, run by Contango on Da
 - **Owner / lead:** Zaynab Habibi. Daily check-ins with Yash start the week of 2026-10-11.
 - **Catalog access / ingestion:** Harish Naidu
 - **Team:** Shourya, Nitheesh, Mohan
-- **Yash's current task:** data quality and data completeness checks on the source tables. That covers the existing Solcast and PV telemetry inputs, plus the new historical "renewal" weather/irradiance data Harish ingested. The vendor name is unconfirmed; it was garbled in the meeting transcript.
+- **Yash's current task:** data quality and data completeness checks on the source tables. That covers the existing Solcast and PV telemetry inputs, plus the new historical **Reuniwatt** weather/irradiance data Harish ingested into catalog `ewec_dev_reuniwatt` (heard as "renewal" in meetings).
 
-Weather inputs come from two possible sources: **Solcast** (current) and the new **"renewal"** source. Part of the goal is to assess whether the new source can replace or supplement Solcast.
+Weather inputs come from two possible sources: **Solcast** (current) and the new **Reuniwatt** source (`ewec_dev_reuniwatt`). Part of the goal is to assess whether the new source can replace or supplement Solcast.
 
 ## Sites and target
 
@@ -25,7 +25,7 @@ Weather inputs come from two possible sources: **Solcast** (current) and the new
 | `ewec_dev_powerops.bronze.power_contango_minute_pv` | 1-min PV telemetry: `DateTime`, `PV1_MW`, `PV2_MW` |
 | `ewec_dev_powerops.bronze.pv1_history_solcast` | Solcast irradiance/weather for PV1, keyed on `period_end` |
 | `ewec_dev_powerops.bronze.pv2_history_solcast` | Same for PV2 (`relative_humidity` effectively unused) |
-| *TBD:* renewal historical tables | Location to be provided by Harish/Zaynab |
+| `ewec_dev_reuniwatt.*` | Reuniwatt historical weather/irradiance. Schema and table names TBD; notebook 05 lists them |
 
 ### Silver
 - `ewec_dev_powerops.silver.uc2_solar_5min` / `_15min` / `_hourly` are Bronze→Silver outputs. Only `_5min` is actually consumed downstream.
@@ -68,11 +68,11 @@ Model: per (site × horizon), RidgeCV ×5 + LightGBM + XGBoost + HistGBR. The wr
 
 ## Data-quality checklist (current task)
 
-For each Bronze table, and for the renewal tables once located:
+For each Bronze table, and for the Reuniwatt tables:
 - **Completeness:** min/max timestamp; expected vs. actual row count at the native interval; missing intervals per day; null rate per column, split by daytime and night.
 - **Validity:** negative irradiance or PV; irradiance > 0 when `zenith > 90`; `ghi` far above `clearsky_ghi`; PV above plausible capacity; flat-lined or stuck values; duplicate timestamps.
 - **Consistency:** timezone and timestamp convention (period start vs. `period_end`); interval regularity; unit consistency.
-- **Alignment:** date-range overlap between PV telemetry, Solcast, and renewal data; site mapping (remember the swap).
+- **Alignment:** date-range overlap between PV telemetry, Solcast, and Reuniwatt data; site mapping (remember the swap).
 - **Solcast-specific:** does data extend into the future? Forecast or actuals?
 - **Silver cross-check:** count daytime rows with `PV_MW = 0` in `uc2_solar_5min` vs. Bronze nulls to quantify masking.
 
@@ -98,7 +98,7 @@ For each Bronze table, and for the renewal tables once located:
 
 ## Open questions
 
-- [ ] Exact name and catalog/schema of the "renewal" historical tables
+- [x] Reuniwatt source is catalog `ewec_dev_reuniwatt` (exact schema/table still to confirm)
 - [ ] Bronze timestamp timezone (UTC vs. Asia/Dubai)
 - [ ] Are Solcast history rows forecasts (with issue time) or estimated actuals?
 - [ ] Site nameplate capacities for PV1 and PV2

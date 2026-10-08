@@ -1,17 +1,17 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 05 · DQ — "Renewal" historical weather source
-# MAGIC The new historical weather/irradiance data Harish ingested. The table location and vendor name are **not confirmed yet**.
+# MAGIC # 05 · DQ — Reuniwatt historical weather source
+# MAGIC The new historical weather/irradiance data Harish ingested, in catalog **`ewec_dev_reuniwatt`**. Mentioned in meetings as "renewal".
 # MAGIC
-# MAGIC - With `renewal_table` empty, this notebook searches the catalog for candidate tables.
-# MAGIC - With it set, it runs the generic profile and compares coverage with Solcast for the same site.
+# MAGIC - Section 0 lists every table and its columns in `ewec_dev_reuniwatt`. Use it to pick `reuniwatt_table` and `ts_col`.
+# MAGIC - With those widgets set, it runs the generic profile and compares coverage with Solcast for the same site.
 # MAGIC
 # MAGIC Run `04_dq_source_alignment` with the same table to check time offset and site mapping against PV.
 
 # COMMAND ----------
 
 dbutils.widgets.text("scratch_schema", "", "Scratch schema (optional, catalog.schema)")
-dbutils.widgets.text("renewal_table", "", "Renewal table (catalog.schema.table)")
+dbutils.widgets.text("reuniwatt_table", "", "Reuniwatt table (ewec_dev_reuniwatt.<schema>.<table>)")
 dbutils.widgets.text("ts_col", "", "Timestamp column")
 dbutils.widgets.text("site_col", "", "Site column (optional)")
 dbutils.widgets.dropdown("compare_site", "PV1", ["PV1", "PV2"], "Solcast site to compare")
@@ -22,32 +22,40 @@ dbutils.widgets.dropdown("compare_site", "PV1", ["PV1", "PV2"], "Solcast site to
 
 # COMMAND ----------
 
-TABLE = dbutils.widgets.get("renewal_table").strip()
+TABLE = dbutils.widgets.get("reuniwatt_table").strip()
 TS = dbutils.widgets.get("ts_col").strip()
 SITE_COL = dbutils.widgets.get("site_col").strip()
 
 # COMMAND ----------
 
-# MAGIC %md ## 0. Find candidate tables
+# MAGIC %md ## 0. Inventory of `ewec_dev_reuniwatt`
+# MAGIC Every table, then its columns. Look for a timestamp column, a site/location column, and irradiance columns (`ghi`, `dni`, `dhi`, …).
 
 # COMMAND ----------
 
-pattern = "renew|weather|irrad|ghi|meteo|solar|hist"
-for cat in [CATALOG, "ewec_forecast_models"]:
-    try:
-        display(spark.sql(f"""
-            SELECT table_catalog, table_schema, table_name, table_type, created, last_altered
-            FROM {cat}.information_schema.tables
-            WHERE lower(table_name) RLIKE '{pattern}' AND table_schema <> 'information_schema'
-            ORDER BY last_altered DESC
-        """))
-    except Exception as e:
-        print(f"{cat}: cannot read information_schema ({e})")
+display(spark.sql(f"""
+    SELECT table_schema, table_name, table_type, created, last_altered, comment
+    FROM {REUNIWATT_CATALOG}.information_schema.tables
+    WHERE table_schema <> 'information_schema'
+    ORDER BY table_schema, table_name
+"""))
+
+# COMMAND ----------
+
+display(spark.sql(f"""
+    SELECT table_schema, table_name,
+           count(*) AS n_columns,
+           concat_ws(', ', collect_list(concat(column_name, ' ', data_type))) AS columns
+    FROM (SELECT * FROM {REUNIWATT_CATALOG}.information_schema.columns
+          WHERE table_schema <> 'information_schema' ORDER BY ordinal_position)
+    GROUP BY table_schema, table_name
+    ORDER BY table_schema, table_name
+"""))
 
 # COMMAND ----------
 
 if not TABLE or not TS:
-    dbutils.notebook.exit("Set renewal_table and ts_col, then re-run.")
+    dbutils.notebook.exit("Set reuniwatt_table and ts_col, then re-run.")
 
 raw = spark.table(TABLE)
 raw.printSchema()
@@ -102,8 +110,8 @@ period = (
     else F.when(F.col("ghi") > 5, "day").otherwise("night") if "ghi" in ren.columns
     else None
 )
-display(save(null_rates(ren, num_cols, period), "renewal_null_rates"))
-display(save(column_stats(ren, num_cols), "renewal_column_stats"))
+display(save(null_rates(ren, num_cols, period), "reuniwatt_null_rates"))
+display(save(column_stats(ren, num_cols), "reuniwatt_column_stats"))
 
 # COMMAND ----------
 
@@ -117,7 +125,7 @@ rules = {
     "rh_out_of_0_100": ("relative_humidity < 0 OR relative_humidity > 100", ["relative_humidity"]),
     "air_temp_implausible": ("air_temp < -5 OR air_temp > 60", ["air_temp"]),
 }
-display(save(rule_counts(ren, rules), "renewal_rules"))
+display(save(rule_counts(ren, rules), "reuniwatt_rules"))
 
 # COMMAND ----------
 
