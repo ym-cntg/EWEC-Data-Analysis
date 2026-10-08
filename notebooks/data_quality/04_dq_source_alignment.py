@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # 04 · DQ — Source alignment
 # MAGIC Checks across PV telemetry, Solcast PV1/PV2 and (optionally) the Reuniwatt source:

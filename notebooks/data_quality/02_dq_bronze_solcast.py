@@ -138,3 +138,6 @@ prof = hourly_profile(sc, TS, present(sc, ["zenith", "clearsky_ghi", "ghi"]))
 display(prof)
 peak = prof.orderBy(F.desc("avg_clearsky_ghi")).first()["hour"] if "clearsky_ghi" in sc.columns else prof.orderBy("avg_zenith").first()["hour"]
 print(f"{SITE} Solcast: peak hour {peak:02d}:00 -> looks like {guess_timezone(peak)}")
+
+# COMMAND ----------
+

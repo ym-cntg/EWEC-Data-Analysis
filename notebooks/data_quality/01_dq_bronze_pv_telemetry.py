@@ -18,8 +18,9 @@ dbutils.widgets.text("stuck_min_minutes", "60", "Stuck-value min run (minutes)")
 
 # COMMAND ----------
 
+from pyspark.sql import functions as F
 TS = "DateTime"
-raw = spark.table(PV_TABLE)
+raw = spark.table("ewec_dev_powerops.bronze.power_contango_minute_pv")
 raw.printSchema()
 
 pv = raw.select(F.col(TS).alias("_raw_ts"), F.col(TS).cast("timestamp").alias(TS), *PV_COLS)
@@ -129,3 +130,6 @@ display(prof)
 for c in PV_COLS:
     peak = prof.orderBy(F.desc(f"avg_{c}")).first()["hour"]
     print(f"{c}: peak hour {peak:02d}:00 -> looks like {guess_timezone(peak)}")
+
+# COMMAND ----------
+
