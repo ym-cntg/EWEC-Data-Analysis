@@ -4,7 +4,7 @@
 # MAGIC Reads every `dq_*` table in `scratch_schema` and prints them as **one block of text**. Copy the whole output of the last cell and paste it to Claude.
 # MAGIC
 # MAGIC - Summary tables are printed in full, up to `max_rows`. Long detail lists (gaps, low days, stuck runs …) print their total row count and the first `detail_rows` rows.
-# MAGIC - The same text is also written to `/Workspace/Users/<you>/dq_export.txt` in case the output is too long to copy.
+# MAGIC - The same text is written to `results/dq_export.txt` in this Git folder. Commit and push it (Git dialog), and Claude can pull and read it.
 
 # COMMAND ----------
 
@@ -81,14 +81,20 @@ for t in sorted(tables, key=sort_key):
         parts.append(f"### {t}\n  (could not read: {e})\n")
 text = "\n".join(parts)
 
+import os
+
+# Write into the Git folder (<repo>/results/dq_export.txt) so it can be committed and pulled.
 try:
-    user = spark.sql("SELECT current_user()").first()[0]
-    path = f"/Workspace/Users/{user}/dq_export.txt"
+    nb_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
+    nb_dir = os.path.dirname(nb_path if nb_path.startswith("/Workspace") else "/Workspace" + nb_path)
+    repo_root = os.path.normpath(os.path.join(nb_dir, "..", ".."))
+    os.makedirs(os.path.join(repo_root, "results"), exist_ok=True)
+    path = os.path.join(repo_root, "results", "dq_export.txt")
     with open(path, "w") as f:
         f.write(text)
-    print(f"(also saved to {path}, {len(text):,} characters)\n")
+    print(f"(saved to {path}, {len(text):,} characters: commit and push it from the Git dialog)\n")
 except Exception as e:
-    print(f"(could not save a copy: {e})\n")
+    print(f"(could not save to the repo: {e})\n")
 
 # COMMAND ----------
 

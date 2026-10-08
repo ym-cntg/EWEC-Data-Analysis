@@ -21,7 +21,7 @@ The checks therefore run on the raw Bronze tables. Notebook 03 then measures how
    - It creates the schema if needed. If you lack permission, ask Harish for a schema you can write to.
    - It runs 01 → 02 (PV1, PV2) → 04 → 03 → 05 → 06. A failing notebook is logged in `dq_run_log` and the rest continue.
    - It re-runs 05 and 06 with `timestamps_tz = Asia/Dubai` if their timezone test says so, and 06 with `pv_shift_h` if PV is offset.
-3. Open **`07_dq_export`** with the same `scratch_schema`, **Run all**, and copy the output of the last cell. It is every result as one block of text, also saved to `/Workspace/Users/<you>/dq_export.txt`.
+3. Open **`07_dq_export`** with the same `scratch_schema`, **Run all**, and copy the output of the last cell. It is every result as one block of text, also saved to `results/dq_export.txt` in the repo; commit and push it to share.
 
 Each result is saved as `<scratch_schema>.dq_<name>`, and single findings (counts, detected settings) as `dq_<notebook>_notes`. Re-running replaces the tables.
 
