@@ -134,7 +134,7 @@ This measures how much of the "zero generation" in Silver is really missing data
 
 ## 04 · Source alignment
 
-**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`) For the Reuniwatt forecast fact tables, use notebook 05 section 11 instead: those tables hold several runs per timestamp.
+**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`). For the Reuniwatt forecast fact tables, use notebook 05 section 11 instead: those tables hold several runs per timestamp.
 
 All results use Bronze (upstream) site labels.
 
