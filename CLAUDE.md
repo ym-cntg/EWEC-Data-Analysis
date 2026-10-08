@@ -100,7 +100,7 @@ For each Bronze table, and for the Reuniwatt tables:
 ## Open questions
 
 - [x] Reuniwatt tables: `ewec_dev_reuniwatt.silver.fact_solar_irradiance`, `fact_solar_power_forecast`
-- [ ] Reuniwatt `site` pv1/pv2: which Bronze PV column does each match? (notebook 05, section 11)
+- [ ] Reuniwatt `site` pv1/pv2: which Bronze PV column does each match? (notebooks 05 and 06)
 - [ ] Bronze timestamp timezone (UTC vs. Asia/Dubai)
 - [ ] Are Solcast history rows forecasts (with issue time) or estimated actuals?
 - [ ] Site nameplate capacities for PV1 and PV2

@@ -246,3 +246,244 @@ def bucket_end(df: DataFrame, ts: str, cols, minutes: int, out_ts: str = "period
     """Average `cols` into `minutes`-wide buckets labelled by bucket END (period_end convention)."""
     end = F.timestamp_seconds(F.ceil(F.unix_timestamp(ts) / (minutes * 60)) * minutes * 60)
     return df.groupBy(end.alias(out_ts)).agg(*[F.avg(c).alias(c) for c in cols])
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Solar geometry
+# MAGIC Computed sun position, so day/night can be decided for sources without a `zenith` column (e.g. Reuniwatt).
+# MAGIC Both plants are in Abu Dhabi emirate; a 1° longitude difference shifts solar time by only ~4 min, so one reference point is enough for day/night and clearness checks.
+
+# COMMAND ----------
+
+SITE_LAT, SITE_LON = 24.45, 54.6
+SOLAR_CONSTANT = 1361.0
+TZ_OFFSET_H = {"UTC": 0, "Asia/Dubai": 4}
+
+
+def add_solar_geometry(df: DataFrame, ts: str = "period_end", tz_offset_h: int = 0, granularity_col: str = "granularity_min",
+                       lat: float = SITE_LAT, lon: float = SITE_LON) -> DataFrame:
+    """Adds sun_zenith (deg), etr_horizontal (W/m2, top-of-atmosphere on a horizontal plane) and daypart.
+
+    Evaluated at the middle of each period (period_end − granularity/2). `tz_offset_h` is the offset of the
+    timestamps from UTC (0 if they are UTC, 4 if Asia/Dubai). NOAA approximation, accurate to well under a degree.
+    """
+    half = F.col(granularity_col) * 30 if granularity_col in df.columns else F.lit(0)
+    t = F.timestamp_seconds(F.unix_timestamp(ts) - tz_offset_h * 3600 - half)
+    doy = F.dayofyear(t)
+    hr = F.hour(t) + F.minute(t) / 60 + F.second(t) / 3600
+    g = 2 * 3.141592653589793 / 365 * (doy - 1 + (hr - 12) / 24)
+    decl = (0.006918 - 0.399912 * F.cos(g) + 0.070257 * F.sin(g) - 0.006758 * F.cos(2 * g)
+            + 0.000907 * F.sin(2 * g) - 0.002697 * F.cos(3 * g) + 0.00148 * F.sin(3 * g))
+    eqtime = 229.18 * (0.000075 + 0.001868 * F.cos(g) - 0.032077 * F.sin(g) - 0.014615 * F.cos(2 * g) - 0.040849 * F.sin(2 * g))
+    ha = F.radians((hr * 60 + eqtime + 4 * lon) / 4 - 180)
+    latr = F.radians(F.lit(lat))
+    cosz = F.sin(latr) * F.sin(decl) + F.cos(latr) * F.cos(decl) * F.cos(ha)
+    cosz = F.least(F.greatest(cosz, F.lit(-1.0)), F.lit(1.0))
+    etr = SOLAR_CONSTANT * (1 + 0.033 * F.cos(2 * 3.141592653589793 * doy / 365)) * F.greatest(cosz, F.lit(0.0))
+    return (
+        df.withColumn("sun_zenith", F.degrees(F.acos(cosz)))
+        .withColumn("etr_horizontal", etr)
+        .withColumn("daypart", F.when(F.col("sun_zenith") < 85, "day").when(F.col("sun_zenith") > 95, "night").otherwise("twilight"))
+    )
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Forecast-table helpers (Reuniwatt fact tables)
+# MAGIC A forecast table has one row per run (`reference_time`, issue time) × target period (`period_end`), per segment
+# MAGIC (`site`, `provider`, `horizon`, `granularity_min`).
+
+# COMMAND ----------
+
+FC_KEY = ["site", "provider", "horizon", "granularity_min", "reference_time", "period_end"]
+FC_SEG = ["site", "provider", "horizon", "granularity_min"]
+FC_META = ["_source", "_ingested_at", "forecast_day_offset", "_backup_at", "_backup_run_id"]
+
+
+def prep_forecast(df: DataFrame) -> DataFrame:
+    for c in ("period_end", "reference_time", "_ingested_at", "_backup_at"):
+        if c in df.columns:
+            df = df.withColumn(c, F.col(c).cast("timestamp"))
+    for c in ("site", "horizon", "provider"):
+        if c in df.columns:
+            df = df.withColumn(c, F.lower(F.trim(c)))
+    return df.withColumn("lead_min", (F.unix_timestamp("period_end") - F.unix_timestamp("reference_time")) / 60)
+
+
+def fc_overview(df: DataFrame) -> DataFrame:
+    extra = [F.max("_ingested_at").alias("last_ingested")] if "_ingested_at" in df.columns else []
+    return df.groupBy(*FC_SEG).agg(
+        F.count("*").alias("rows"),
+        F.countDistinct("reference_time").alias("runs"),
+        F.min("reference_time").alias("first_issue"),
+        F.max("reference_time").alias("last_issue"),
+        F.min("period_end").alias("first_period"),
+        F.max("period_end").alias("last_period"),
+        *extra,
+    ).orderBy(*FC_SEG)
+
+
+def fc_lead(df: DataFrame) -> DataFrame:
+    return df.groupBy(*FC_SEG).agg(
+        F.min("lead_min").alias("min_lead_min"),
+        F.percentile_approx("lead_min", 0.5).alias("median_lead_min"),
+        F.max("lead_min").alias("max_lead_min"),
+        F.round(F.max("lead_min") / 1440, 2).alias("max_lead_days"),
+        F.sum((F.col("lead_min") <= 0).cast("int")).alias("rows_lead_le_0"),
+        F.sum((F.col("lead_min") < 0).cast("int")).alias("rows_lead_lt_0"),
+    ).orderBy(*FC_SEG)
+
+
+def fc_day_offset_check(df: DataFrame):
+    """forecast_day_offset should equal the calendar-day difference between period_end and reference_time."""
+    actual = F.datediff(F.to_date("period_end"), F.to_date("reference_time"))
+    dist = df.groupBy("horizon", "forecast_day_offset").agg(F.count("*").alias("rows")).orderBy("horizon", "forecast_day_offset")
+    mismatch = df.withColumn("computed_day_offset", actual).groupBy("horizon").agg(
+        F.count("*").alias("rows"),
+        F.sum((F.col("forecast_day_offset") != F.col("computed_day_offset")).cast("int")).alias("mismatched"),
+        F.sum(F.col("forecast_day_offset").isNull().cast("int")).alias("null_offset"),
+    ).orderBy("horizon")
+    return dist, mismatch
+
+
+def fc_ingestion(df: DataFrame) -> DataFrame:
+    """Delay between issue (reference_time) and ingestion; negative = ingested before it was issued."""
+    lag_min = (F.unix_timestamp("_ingested_at") - F.unix_timestamp("reference_time")) / 60
+    return df.withColumn("ingest_lag_min", lag_min).groupBy(*FC_SEG).agg(
+        F.min("ingest_lag_min").alias("min_ingest_lag_min"),
+        F.percentile_approx("ingest_lag_min", 0.5).alias("median_ingest_lag_min"),
+        F.max("ingest_lag_min").alias("max_ingest_lag_min"),
+        F.sum((F.col("ingest_lag_min") < 0).cast("int")).alias("rows_ingested_before_issue"),
+        F.countDistinct("_ingested_at").alias("distinct_ingest_times"),
+    ).orderBy(*FC_SEG)
+
+
+def fc_cadence(df: DataFrame):
+    """Returns (summary per segment, list of gaps between runs > 1.5x the usual cadence)."""
+    g = _with_gap(df, "reference_time", FC_SEG)
+    cadence = (
+        g.groupBy(*FC_SEG, "gap_min").count()
+        .withColumn("rk", F.row_number().over(Window.partitionBy(*FC_SEG).orderBy(F.desc("count"))))
+        .where("rk = 1").select(*FC_SEG, F.col("gap_min").alias("cadence_min"))
+    )
+    gaps_df = g.join(cadence, FC_SEG).where("gap_min > 1.5 * cadence_min").select(
+        *FC_SEG, "cadence_min", F.col("prev_ts").alias("last_run_before_gap"), F.col("reference_time").alias("first_run_after_gap"),
+        F.round(F.col("gap_min") / F.col("cadence_min") - 1).alias("approx_missing_runs"),
+    )
+    summary = cadence.join(
+        gaps_df.groupBy(*FC_SEG).agg(F.count("*").alias("gaps"), F.sum("approx_missing_runs").alias("approx_missing_runs")), FC_SEG, "left"
+    ).fillna(0, ["gaps", "approx_missing_runs"]).orderBy(*FC_SEG)
+    return summary, gaps_df.orderBy(F.desc("approx_missing_runs"))
+
+
+def fc_run_completeness(df: DataFrame):
+    """Returns (summary per segment, runs with fewer steps than the segment median)."""
+    runs = df.groupBy(*FC_SEG, "reference_time").agg(
+        F.countDistinct("period_end").alias("steps"), F.min("lead_min").alias("min_lead_min"), F.max("lead_min").alias("max_lead_min")
+    )
+    runs = runs.join(runs.groupBy(*FC_SEG).agg(F.percentile_approx("steps", 0.5).alias("expected_steps")), FC_SEG)
+    w = Window.partitionBy(*FC_SEG, "reference_time").orderBy("period_end")
+    irregular = (
+        df.select(*FC_SEG, "reference_time", "period_end").distinct()
+        .withColumn("step_min", (F.unix_timestamp("period_end") - F.unix_timestamp(F.lag("period_end").over(w))) / 60)
+        .where("step_min IS NOT NULL AND step_min != granularity_min")
+        .groupBy(*FC_SEG).agg(F.count("*").alias("irregular_steps"))
+    )
+    summary = runs.groupBy(*FC_SEG, "expected_steps").agg(
+        F.count("*").alias("runs"),
+        F.sum((F.col("steps") < F.col("expected_steps")).cast("int")).alias("short_runs"),
+        F.sum((F.col("steps") > F.col("expected_steps")).cast("int")).alias("long_runs"),
+        F.min("steps").alias("min_steps"),
+    ).withColumn("short_pct", F.round(100 * F.col("short_runs") / F.col("runs"), 2))
+    summary = summary.join(irregular, FC_SEG, "left").fillna(0, ["irregular_steps"]).orderBy(*FC_SEG)
+    return summary, runs.where("steps < expected_steps").orderBy(*FC_SEG, "reference_time")
+
+
+def fc_coverage(df: DataFrame):
+    """Returns (target-time coverage per segment, days below 99%)."""
+    cov = df.groupBy(*FC_SEG).agg(
+        F.min("period_end").alias("first_period"), F.max("period_end").alias("last_period"), F.countDistinct("period_end").alias("periods")
+    )
+    cov = cov.withColumn(
+        "expected_periods", ((F.unix_timestamp("last_period") - F.unix_timestamp("first_period")) / 60 / F.col("granularity_min") + 1).cast("long")
+    ).withColumn("coverage_pct", F.round(100 * F.col("periods") / F.col("expected_periods"), 2))
+    per_day = (
+        df.groupBy(*FC_SEG, F.to_date("period_end").alias("date")).agg(F.countDistinct("period_end").alias("periods"))
+        .withColumn("expected", (1440 / F.col("granularity_min")).cast("int"))
+        .withColumn("pct", F.round(100 * F.col("periods") / F.col("expected"), 1))
+    )
+    return cov.orderBy(*FC_SEG), per_day.where("pct < 99").orderBy(*FC_SEG, "date")
+
+
+def fc_stale_runs(df: DataFrame, cols, main: str):
+    """A run is stale if, for >=3 overlapping non-zero targets, every value equals the previous run's."""
+    w = Window.partitionBy(*FC_SEG, "period_end").orderBy("reference_time")
+    same = reduce(lambda a, b: a & b, [F.col(c).eqNullSafe(F.lag(c).over(w)) for c in cols])
+    pairs = (
+        df.select(*FC_SEG, "reference_time", "period_end", *cols)
+        .withColumn("has_prev", F.lag("reference_time").over(w).isNotNull())
+        .withColumn("same", same)
+        .where(F.col("has_prev") & (F.col(main) != 0))
+    )
+    per_run = pairs.groupBy(*FC_SEG, "reference_time").agg(F.count("*").alias("overlap"), F.sum(F.col("same").cast("int")).alias("identical"))
+    stale = per_run.where("overlap >= 3 AND identical = overlap")
+    summary = (
+        per_run.groupBy(*FC_SEG).agg(F.count("*").alias("runs_compared"))
+        .join(stale.groupBy(*FC_SEG).agg(F.count("*").alias("stale_runs")), FC_SEG, "left").fillna(0, ["stale_runs"])
+        .withColumn("stale_pct", F.round(100 * F.col("stale_runs") / F.col("runs_compared"), 2)).orderBy(*FC_SEG)
+    )
+    return summary, stale.orderBy(*FC_SEG, "reference_time")
+
+
+def fc_latest(df: DataFrame) -> DataFrame:
+    """Most recent run per segment and target period (the shortest-lead forecast)."""
+    w = Window.partitionBy(*FC_SEG, "period_end").orderBy(F.desc("reference_time"))
+    return df.withColumn("_rk", F.row_number().over(w)).where("_rk = 1").drop("_rk")
+
+
+def fc_backup_compare(df: DataFrame, backup_table: str):
+    """Returns (summary of main vs backup keys, backup snapshots). Raises if the backup is missing."""
+    bk = prep_forecast(spark.table(backup_table))
+    km, kb = df.select(*FC_KEY).distinct(), bk.select(*FC_KEY).distinct()
+    summary = spark.createDataFrame([(
+        df.count(), bk.count(), km.join(kb, FC_KEY, "left_anti").count(), kb.join(km, FC_KEY, "left_anti").count(),
+    )], "rows_main long, rows_backup long, keys_only_in_main long, keys_only_in_backup long")
+    snaps = bk.groupBy("_backup_run_id").agg(
+        F.min("_backup_at").alias("backup_at"), F.count("*").alias("rows"), F.max("reference_time").alias("latest_issue_in_snapshot")
+    ).orderBy("backup_at") if "_backup_run_id" in bk.columns else None
+    return summary, snaps
+
+
+def peak_hour_by_site(df: DataFrame, col: str, ts: str = "period_end") -> DataFrame:
+    prof = df.groupBy("site", F.hour(ts).alias("hour")).agg(F.avg(col).alias(f"avg_{col}"))
+    best = prof.withColumn("rk", F.row_number().over(Window.partitionBy("site").orderBy(F.desc(f"avg_{col}")))).where("rk = 1")
+    guess = F.when(F.abs(F.col("hour") - SOLAR_NOON_HOUR["UTC"]) <= 1, "UTC") \
+        .when(F.abs(F.col("hour") - SOLAR_NOON_HOUR["Asia/Dubai"]) <= 1, "Asia/Dubai").otherwise("unclear")
+    return best.select("site", F.col("hour").alias("peak_hour"), guess.alias("looks_like"))
+
+
+def pv_observed(minutes: int, shift_h: int = 0) -> DataFrame:
+    """Bronze PV averaged into `minutes` buckets labelled by bucket end, optionally shifted by `shift_h` hours."""
+    pv = spark.table(PV_TABLE).select(
+        F.timestamp_seconds(F.unix_timestamp(F.col("DateTime").cast("timestamp")) + shift_h * 3600).alias("ts"), *PV_COLS
+    )
+    return bucket_end(pv, "ts", PV_COLS, minutes)
+
+
+def lag_scan_vs_pv(latest: DataFrame, col: str, hours: int = 6) -> DataFrame:
+    """Hourly correlation of `col` with each Bronze PV column for offsets -hours..+hours.
+    Best offset k means PV time ≈ forecast period_end + k."""
+    hour_end = F.timestamp_seconds(F.ceil(F.unix_timestamp("period_end") / 3600) * 3600)
+    fc_h = latest.groupBy("site", hour_end.alias("period_end")).agg(F.avg(col).alias(col))
+    pv_h = pv_observed(60)
+    rows = []
+    for off in range(-hours, hours + 1):
+        j = fc_h.withColumn("period_end", F.timestamp_seconds(F.unix_timestamp("period_end") + off * 3600)).join(pv_h, "period_end")
+        for r in j.groupBy("site").agg(*[F.corr(col, c).alias(c) for c in PV_COLS]).collect():
+            rows += [(r["site"], c, off, r[c]) for c in PV_COLS]
+    return spark.createDataFrame(rows, "site string, pv_col string, offset_h int, corr double")
+
+
+def best_rows(df: DataFrame, by, order_col: str) -> DataFrame:
+    return df.withColumn("_rk", F.row_number().over(Window.partitionBy(*by).orderBy(F.desc(order_col)))).where("_rk = 1").drop("_rk")

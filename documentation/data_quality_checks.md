@@ -28,7 +28,8 @@ All notebooks are **read-only** against the shared tables.
 | 2 | `02_dq_bronze_solcast` (run once per site) | Forecasts or actuals?; Solcast timezone |
 | 3 | `04_dq_source_alignment` | Timezone offset between sources; which plant is PV1/PV2 |
 | 4 | `03_dq_silver_masking` | How much missing data Silver turns into zeros |
-| 5 | `05_dq_reuniwatt_facts` (run once per fact table) | Is the Reuniwatt forecast data complete, on time and consistent with PV and Solcast? |
+| 5 | `05_dq_reuniwatt_irradiance` | Is the Reuniwatt weather forecast complete, physically consistent, and in line with Solcast? |
+| 6 | `06_dq_reuniwatt_power` | Is the Reuniwatt power forecast complete and sane, and how does it compare with actual PV? |
 
 ### Thresholds used (from the pipeline code)
 
@@ -134,7 +135,7 @@ This measures how much of the "zero generation" in Silver is really missing data
 
 ## 04 · Source alignment
 
-**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`). For the Reuniwatt forecast fact tables, use notebook 05 section 11 instead: those tables hold several runs per timestamp.
+**Sources:** Bronze PV, Solcast PV1, Solcast PV2, and optionally a Reuniwatt table (`reuniwatt_table`, `reuniwatt_ts_col`, `reuniwatt_ghi_col`). For the Reuniwatt forecast fact tables, use notebooks 05 (section 12) and 06 (section 13) instead: those tables hold several runs per timestamp.
 
 All results use Bronze (upstream) site labels.
 
@@ -148,42 +149,64 @@ All results use Bronze (upstream) site labels.
 
 ---
 
-## 05 · Reuniwatt forecast fact tables
+### How the Reuniwatt tables are structured
 
-**Tables:** `ewec_dev_reuniwatt.silver.fact_solar_irradiance`, `ewec_dev_reuniwatt.silver.fact_solar_power_forecast` (plus `_backup` copies and the `dim_forecast_product` / `dim_pv_site` dimensions)
-**Widgets:** `fact_table` (run once for each table), `main_col` (blank = `ghi` for irradiance, the power column for power)
+These are **forecast** tables. Each row is one forecast **run** (`reference_time`, the issue time) for one **target period** (`period_end`). Rows are split by `site` (pv1/pv2), `provider`, `horizon` (intraday/dayahead/weekahead) and `granularity_min`; each such combination is a **segment**, and most results have one row per segment. Neither table has a sun-position column, so the notebooks **compute** sun zenith and extraterrestrial irradiance (for Abu Dhabi, at the middle of each period) to split day from night. That depends on the `timestamps_tz` widget, and each notebook tests which setting is right.
 
-This decides whether Reuniwatt ("renewal" in meetings) can replace or supplement Solcast.
+> The column comment on `period_end` says "Forecast reference/issue time", the same as `reference_time`. Section 3 (lead time) checks which one is really the target time.
 
-These are **forecast** tables, not a single time series. Each row is one forecast **run**, identified by `reference_time` (issue time), for one target period, `period_end`. Rows are split by `site` (pv1/pv2), `provider`, `horizon` (intraday/dayahead/weekahead) and `granularity_min`. Each of those combinations is called a **segment** below, and most checks report one row per segment.
-
-> The column comment on `period_end` says "Forecast reference/issue time", the same as `reference_time`. Section 3 checks which one is really the target time.
+### Sections shared by 05 and 06
 
 | Section | What it checks | How to read it | Red flags |
 |---|---|---|---|
-| Setup | Key columns, value columns, main column | Prints what the notebook detected | Key columns missing; wrong main column (set `main_col`) |
-| 0. Context | Dimension tables; load history; main vs. `_backup` row and key differences | Shows the products and sites; how and when the table is loaded | Keys only in the backup (rows lost on reload); no recent loads |
-| 1. Segments overview | Rows, runs, first/last issue time, first/last target time per segment; null key columns | Which products exist and how much history each has | Null keys; segments with very few runs or short history; last issue long ago (feed stopped) |
-| 2. Duplicate keys | Repeated (site, provider, horizon, granularity, reference_time, period_end) | Should be 0 | Duplicates, especially conflicting ones; they double-count in any join |
-| 3. Lead time | `period_end − reference_time`: min/median/max per segment; rows with lead ≤ 0 | Lead should be positive and fit the horizon: intraday = hours, dayahead ≈ 1–2 days, weekahead ≤ ~7 days | **Lead always 0:** `period_end` is the issue time, not the target. **Lead < 0:** past targets (hindcasts) mixed in; these must be excluded from backtests or they leak. |
-| 4. Issue cadence | Usual gap between runs per segment; gaps > 1.5× cadence | `cadence_min` = schedule (e.g. 15/60/1440). `approx_missing_runs` = runs that never arrived. | Many missing runs; long outages (listed longest first) |
-| 5. Run completeness | Target periods per run vs. the segment median; irregular steps within a run | `short_runs` = truncated deliveries; `irregular_steps` = gaps inside a run | High `short_pct`; non-zero `irregular_steps` |
-| 6. Target-time coverage | % of `period_end` slots covered by at least one run; days below 99% | First and last days are naturally partial | Low coverage. If **intraday** misses only night hours, that may be by design. Check the times of day in the low days. |
-| 7. Null rates | Null % per value column, by horizon and day/night | Day/night uses `zenith` or `clearsky_ghi` if present, otherwise "all" | Daytime nulls in the main column |
-| 8. Validity | Stats; irradiance rules (as in 02); power < 0, > 1700 MW, or > 1 MW at night; quantile crossing (p10 > p50 …); negative lead | `violations` and `pct` per rule. Edit the sample cell to see rows. | Any power or quantile violations; irradiance at night |
-| 9. Stale runs | Runs whose non-zero values all equal the previous run's for the same targets | `stale_pct` per segment | Stale runs mean the provider re-sent an old forecast as new |
-| 10. Timezone | Peak hour of the main value per site | ~08 = UTC, ~12 = Asia/Dubai | A different convention from PV (01) or Solcast (02) |
-| 11. Against observations | Latest run per target vs. Bronze PV (both columns) and Solcast GHI (both sites), averaged to the same granularity: `n`, `corr`, `bias`, `mae` | **Site mapping:** which reference correlates best with `pv1`/`pv2`. **Accuracy:** bias/MAE against the matching reference (PV for power, Solcast GHI for irradiance). Nights are included, so compare correlations relative to each other. | `pv1` matching the "wrong" PV column (record it; the Bronze→Silver swap also applies); large bias; low correlation |
-| 11. Time offset | Hourly lag scan ±6 h vs. Bronze PV | Best `offset_h` should be 0 | ±4 h = UTC vs. Asia/Dubai mismatch; ±1 h = period-start vs. period-end labelling |
+| Setup | Expected vs. actual columns | Lists missing and unexpected columns | Schema drift |
+| 0. Context | `dim_forecast_product`, `dim_pv_site`; load history; main vs. `_backup` keys and snapshots | What products and sites mean; how often the table reloads | `keys_only_in_backup` > 0 (rows lost on reload) |
+| 1. Overview | Rows, runs, first/last issue and target per segment; `_source` breakdown; null keys | How much history each product has; `last_issue` tells you whether the feed is live | Null keys; few runs; feed stopped |
+| 2. Duplicates | Repeated full keys | Should be 0 | Duplicates, especially conflicting ones |
+| 3. Lead time / day offset | `period_end − reference_time` per segment; `forecast_day_offset` vs. the computed day difference | Lead > 0 and fits the horizon (intraday = hours, dayahead ≈ 1–2 d, weekahead ≤ 7 d). `mismatched` should be 0. | **Lead always 0:** `period_end` is the issue time. **Lead < 0:** hindcasts that would leak into a backtest. Day-offset mismatches mean a timezone problem in the day calculation. |
+| 4. Cadence / ingestion | Usual gap between runs, missing runs; delay from issue to `_ingested_at` | `cadence_min` = schedule; `approx_missing_runs` = runs that never arrived; median ingestion delay | Many missing runs; **`rows_ingested_before_issue` > 0** (impossible: clock or timezone error); very long ingestion delays (the forecast arrives too late to use) |
+| 5. Run completeness | Steps per run vs. the segment median; irregular spacing | `short_pct` = truncated runs | High `short_pct`; `irregular_steps` > 0 |
+| 6. Coverage | % of target slots covered; days below 99% | First and last days are naturally partial | Low coverage. Intraday may skip night hours by design, so check that before flagging it. |
+| 7. Null rates | Null % per column by `horizon / daypart` | `daypart` = day / twilight / night from the computed sun position | Daytime nulls in the main columns |
+| Stale runs | Runs whose values all repeat the previous run's | `stale_pct` per segment | The provider re-sent an old forecast as new |
 
----|---|---|---|
-| 0. Inventory | Lists every table in `ewec_dev_reuniwatt` with its columns and types | Pick the table holding historical irradiance, and its timestamp and site columns, for the widgets | Empty or permission error: ask Harish for access
-| Setup | Schema; table details; which Solcast columns it has | Shows which features the new source can provide | Key columns missing (`ghi`, `dni`, `dhi`, `clearsky_ghi`, `zenith`) |
-| 1. Range, duplicates, interval | As for Solcast | Note the native interval and history length | Shorter history than Solcast; duplicates |
-| 2. Completeness | Per site if `site_col` is set: overall %, gaps, days below 99% | Compare directly with notebook 02 | Lower completeness than Solcast |
-| 3. Nulls, ranges, rules | Day/night null %, stats, a subset of the physical rules | Same interpretation as notebook 02 | Same red flags |
-| 4. Timezone | Peak-GHI hour | ~08 UTC / ~12 Dubai | A different convention from Solcast or PV, which will need converting |
-| 5. Compare with Solcast | Correlation, mean bias, MAE on matching timestamps | High correlation with low bias means the sources agree. Bias shows systematic over- or under-estimation. | `matched_ts` = 0 (interval or timezone mismatch; run 04 first); low correlation |
+---
+
+## 05 · Reuniwatt irradiance forecasts
+
+**Table:** `ewec_dev_reuniwatt.silver.fact_solar_irradiance`
+**Widgets:** `timestamps_tz` (UTC / Asia/Dubai), `solcast_shift_h`, `scratch_schema`
+
+This decides whether Reuniwatt can replace or supplement Solcast as the weather input.
+
+| Section | What it checks | How to read it | Red flags |
+|---|---|---|---|
+| 8. Ranges and rules | Stats for all 16 value columns. Irradiance: < 0, above maximum (GHI 1400, DNI 1200, DHI 800, GTI 1500), > 5 W/m² at night, GHI above extraterrestrial. Weather: temperature −5…60 °C, dewpoint ≤ temperature, humidity/cloud 0–100, clearness 0–130, wind speed 0–50 and direction 0–360, pressure 900–1100 hPa, precipitation 0–200. | `violations` / `pct` per rule; sample cell to inspect rows | Night irradiance (usually a timezone problem); pressure around 100 (the unit is kPa, not hPa); any impossible values |
+| 9. Physical consistency | Daytime residuals: `ghi − (bhi + dhi)`; `bhi − dni·cos(zenith)`; `clearness_idx_pct − 100·ghi/ETR`; humidity vs. temperature and dewpoint (Magnus) | p50/p95 of the absolute residuals. Closure should be within a few W/m²; humidity within a few points. | Large closure errors (columns derived inconsistently); a large `bhi` vs. `dni·cos z` gap (time misalignment); humidity off by more than 10 points |
+| 9. East/west GTI | Hourly profile and peak hour of `gti_east_wm2` and `gti_west_wm2` | East should peak before solar noon, west after | Reversed (columns swapped) |
+| 10. Timezone test | Night-irradiance rows and beam/clearness residuals, assuming UTC and then Asia/Dubai; peak GHI hour | The right timezone has far fewer night rows and smaller residuals. Set `timestamps_tz` to it and re-run. | Neither fits: timestamps may be period-start, or `clearness_idx_pct` is a clear-sky index |
+| 11. Stale runs | See the shared table | | |
+| 12. vs. Solcast | Latest run per target, against both Solcast sites at the same granularity: GHI, DNI, DHI, GTI (daytime only), temperature, dewpoint, humidity, wind, cloud, precipitation. `n`, `corr`, `bias`, `mae`. | High `corr` for irradiance and temperature. `bias` = Reuniwatt minus Solcast (Solcast isn't ground truth). The site-mapping table shows which Solcast site each Reuniwatt site matches. | Low GHI correlation; a large constant bias; `pv1` matching the PV2 Solcast site (record the mapping) |
+| 12. Lag vs. PV | Hourly GHI vs. Bronze PV for offsets ±6 h | Best `offset_h` should be 0 | ±4 h = UTC vs. Dubai mismatch with telemetry |
+
+---
+
+## 06 · Reuniwatt power forecasts
+
+**Table:** `ewec_dev_reuniwatt.silver.fact_solar_power_forecast`
+**Widgets:** `timestamps_tz`, `pv_shift_h`, `scratch_schema`
+
+| Section | What it checks | How to read it | Red flags |
+|---|---|---|---|
+| 1. Quality flags | `quality_flag` counts and % per horizon | Which flags exist and how common they are | A large share flagged; unknown flag values |
+| 8. Ranges and rules | Stats and p99.9/max per site; each power column < 0, > 1700 MW, or > 1 MW at night; band ordering (`p10 ≤ power_mw ≤ p90`); zero-width daytime band; band missing while the point forecast is present | The p99.9/max per site approximates the plant capacity Reuniwatt assumes | Any ordering violations; power at night; values above capacity |
+| 9. Adjustments | `power_mw` vs. `power_mw_original` by horizon × `quality_flag`: % adjusted, mean/max difference, median ratio, null mismatches | Shows what the adjustment does (for example clipping gives ratio < 1 near the top; a scale factor gives a constant ratio) and whether flags explain it | Adjustments with no flag; large or unexplained changes; the adjusted value null where the original isn't |
+| 10. Band width | Median daytime `p90 − p10` (absolute and relative) by site × horizon × day offset | Should widen with lead time | Constant width or few distinct widths (a placeholder band); the band narrowing with lead |
+| 11. Stale runs | See the shared table | | |
+| 12. Timezone test | Night rows with power > 1 MW, assuming UTC and then Asia/Dubai; peak hour | The right timezone has far fewer night rows | Many night rows under both (period labelling problem) |
+| 13. Lag and mapping vs. PV | Hourly ±6 h lag scan; best Bronze PV column per Reuniwatt site | Best offset should be 0; otherwise set `pv_shift_h` = −offset and re-run. Mapping is picked automatically and displayed. | Non-zero offset; an ambiguous mapping (similar correlations) |
+| 13. Accuracy vs. PV | Daytime, all runs, by site × horizon × granularity × day offset: `corr`, `bias_mw`, `mae`, `nmae_pct` (% of observed max), `mae_original`, `band_coverage_pct` | MAE should grow with day offset. `band_coverage_pct` ≈ 80% for a calibrated p10–p90. `mae < mae_original` means the adjustment helps. | Large bias; error not growing with lead; coverage well below 80% (overconfident) or near 100% (band too wide). Remember actuals include outages (notebook 01). |
+| 14. vs. irradiance table | Runs present in only one of the two tables; daytime correlation of power with GTI and GHI on matching keys | Both tables should share runs, and power should correlate ≥ 0.9 with GTI | Runs missing from one table; low correlation (misaligned or mislabelled) |
 
 ---
 
