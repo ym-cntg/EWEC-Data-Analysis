@@ -1,0 +1,1539 @@
+# DQ EXPORT · ewec_dev_powerops.scratch_yash · 2026-10-08 14:41 UTC · 123 tables
+
+### run_log (8 rows)
+label | notebook | params | status | minutes | error | finished_utc
+01 PV telemetry | 01_dq_bronze_pv_telemetry | {} | ok | 2.9 |  | 2026-10-08T13:39:35
+02 Solcast PV1 | 02_dq_bronze_solcast | {'site': 'PV1'} | ok | 4.9 |  | 2026-10-08T13:44:39
+02 Solcast PV2 | 02_dq_bronze_solcast | {'site': 'PV2'} | ok | 5.1 |  | 2026-10-08T13:50:00
+04 Source alignment | 04_dq_source_alignment | {} | ok | 3.5 |  | 2026-10-08T13:53:51
+03 Silver masking | 03_dq_silver_masking | {} | ok | 2.5 |  | 2026-10-08T13:56:34
+05 Reuniwatt irradiance (UTC) | 05_dq_reuniwatt_irradiance | {'timestamps_tz': 'UTC'} | ok | 13.3 |  | 2026-10-08T14:10:01
+06 Reuniwatt power (UTC) | 06_dq_reuniwatt_power | {'timestamps_tz': 'UTC', 'pv_shift_h': 0} | ok | 12.9 |  | 2026-10-08T14:23:05
+06 Reuniwatt power (UTC, pv_shift_h=-4) | 06_dq_reuniwatt_power | {'timestamps_tz': 'UTC', 'pv_shift_h': -4} | ok | 16.5 |  | 2026-10-08T14:40:08
+
+### pv_notes (8 rows)
+  unparseable_timestamps: 0
+  duplicate_timestamps: 1855 (conflicting: 1003)
+  gaps_over_1min: 7313
+  missing_minutes_in_gaps: 32973.0
+  days_below_99pct: 1301 of 1301
+  stuck_runs_ge_60min: 0
+  PV1_MW_peak_hour: 04:00 -> looks like unclear
+  PV2_MW_peak_hour: 12:00 -> looks like Asia/Dubai
+
+### pv_column_stats (2 rows)
+column | rows | nulls | zeros | min | p01_p50_p99_p999 | max
+PV1_MW | 1841045 | 889713 | 44722 | -9223372036854775808 | [-2.495, 844.9, 1642, 1362459398705687040] | 9116912580987116544
+PV2_MW | 1841045 | 889419 | 8744 | -2.683 | [-1.073, 492.7, 1640, 1642] | 1663
+
+### pv_completeness (1 rows)
+min_ts | max_ts | interval_min | expected_rows | actual_distinct_ts | missing_rows | completeness_pct
+2023-03-18 14:48 | 2026-10-08 17:30 | 1 | 1872163 | 1839190 | 32973 | 98.24
+
+### pv_completeness_per_day (12 of 1301 rows)
+date | timestamps | expected | timestamp_pct | PV1_MW_pct | PV2_MW_pct
+2023-03-18 | 552 | 1440 | 38.33 | 0 | 16.53
+2023-03-19 | 1440 | 1440 | 100 | 0 | 52.64
+2023-03-20 | 1439 | 1440 | 99.93 | 0 | 53.06
+2023-03-21 | 1440 | 1440 | 100 | 0 | 52.92
+2023-03-22 | 1437 | 1440 | 99.79 | 0 | 53.13
+2023-03-23 | 1440 | 1440 | 100 | 0 | 53.54
+2023-03-24 | 1438 | 1440 | 99.86 | 0 | 53.06
+2023-03-25 | 1440 | 1440 | 100 | 0 | 53.33
+2023-03-26 | 1440 | 1440 | 100 | 0 | 53.19
+2023-03-27 | 1440 | 1440 | 100 | 0 | 52.57
+2023-03-28 | 1440 | 1440 | 100 | 0 | 53.54
+2023-03-29 | 1440 | 1440 | 100 | 0 | 54.24
+
+### pv_gaps (12 of 7313 rows)
+last_before_gap | first_after_gap | missing_minutes
+2024-12-31 00:00 | 2025-01-01 00:00 | 1439
+2026-08-16 06:00 | 2026-08-16 16:06 | 605
+2026-05-12 18:18 | 2026-05-13 03:05 | 526
+2025-02-16 03:11 | 2025-02-16 11:11 | 479
+2024-02-10 07:05 | 2024-02-10 10:47 | 221
+2025-04-11 20:10 | 2025-04-11 23:42 | 211
+2024-01-29 11:33 | 2024-01-29 14:23 | 169
+2025-03-01 22:46 | 2025-03-02 01:36 | 169
+2025-04-18 20:10 | 2025-04-18 22:52 | 161
+2025-09-15 01:58 | 2025-09-15 04:38 | 159
+2025-09-13 13:39 | 2025-09-13 16:17 | 157
+2025-12-15 14:07 | 2025-12-15 16:32 | 144
+
+### pv_hourly_profile (12 of 24 rows)
+hour | avg_PV1_MW | avg_PV2_MW
+0 | 14423560931539866 | -0.541
+1 | 14667151891294960 | -0.5397
+2 | 20250155611285052 | -0.5529
+3 | 22578868631749252 | -0.5599
+4 | 33776115548239628 | -0.5592
+5 | 12782242018834816 | 7.887
+6 | 2823217768429972 | 79.39
+7 | 1467037116043136 | 249.2
+8 | 1144538085499060 | 497.9
+9 | 2810099621923534 | 684.3
+10 | 666244536740027 | 800.1
+11 | 1603942483784420 | 869.6
+
+### pv_interval_profile (20 rows)
+gap_min | count
+1 | 1831876
+5 | 6545
+2 | 401
+3 | 196
+10 | 66
+4 | 38
+15 | 12
+6 | 11
+8 | 5
+9 | 3
+14 | 3
+12 | 3
+7 | 3
+11 | 2
+13 | 2
+170 | 2
+20 | 2
+16 | 2
+222 | 1
+1440 | 1
+
+### pv_low_days (12 of 1301 rows)
+date | timestamps | expected | timestamp_pct | PV1_MW_pct | PV2_MW_pct
+2023-03-18 | 552 | 1440 | 38.33 | 0 | 16.53
+2023-03-19 | 1440 | 1440 | 100 | 0 | 52.64
+2023-03-20 | 1439 | 1440 | 99.93 | 0 | 53.06
+2023-03-21 | 1440 | 1440 | 100 | 0 | 52.92
+2023-03-22 | 1437 | 1440 | 99.79 | 0 | 53.13
+2023-03-23 | 1440 | 1440 | 100 | 0 | 53.54
+2023-03-24 | 1438 | 1440 | 99.86 | 0 | 53.06
+2023-03-25 | 1440 | 1440 | 100 | 0 | 53.33
+2023-03-26 | 1440 | 1440 | 100 | 0 | 53.19
+2023-03-27 | 1440 | 1440 | 100 | 0 | 52.57
+2023-03-28 | 1440 | 1440 | 100 | 0 | 53.54
+2023-03-29 | 1440 | 1440 | 100 | 0 | 54.24
+
+### pv_monthly_max (44 rows)
+month | PV1_MW_max | PV2_MW_max | PV1_MW_p995 | PV2_MW_p995
+2023-03-01 00:00 |  | 933 |  | 915.5
+2023-04-01 00:00 | 9116912580987116544 | 946.3 | 8048329031112551424 | 934.3
+2023-05-01 00:00 | 8710994985233037312 | 914.3 | 1609916262289850880 | 904.6
+2023-06-01 00:00 | 1650 | 879.9 | 1644 | 872.4
+2023-07-01 00:00 | 1649 | 866.3 | 1643 | 835.8
+2023-08-01 00:00 | 1645 | 830.1 | 1634 | 824.6
+2023-09-01 00:00 | 1437 | 837.7 | 1431 | 820.4
+2023-10-01 00:00 | 1483 | 816.8 | 1423 | 777.9
+2023-11-01 00:00 | 1505 | 849.8 | 1488 | 750.2
+2023-12-01 00:00 | 1384 | 764.5 | 1359 | 697.5
+2024-01-01 00:00 | 1445 | 860.5 | 1387 | 748.8
+2024-02-01 00:00 | 1588 | 911.3 | 1500 | 851.2
+2024-03-01 00:00 | 1654 | 937.4 | 1644 | 900.5
+2024-04-01 00:00 | 1656 | 941.3 | 1647 | 911.3
+2024-05-01 00:00 | 1671 | 918.3 | 1648 | 895.6
+2024-06-01 00:00 | 1656 | 857.7 | 1645 | 830.6
+2024-07-01 00:00 | 1649 | 875 | 1642 | 819.5
+2024-08-01 00:00 | 1646 | 836.1 | 1641 | 793.3
+2024-09-01 00:00 | 1646 | 811.9 | 1642 | 802.6
+2024-10-01 00:00 | 1625 | 777.6 | 1620 | 767.6
+2024-11-01 00:00 | 1465 | 709.5 | 1431 | 700.7
+2024-12-01 00:00 | 1409 | 744 | 1386 | 679.2
+2025-01-01 00:00 | 1464 | 833.3 | 1427 | 748.2
+2025-02-01 00:00 | 1519 | 897.3 | 1500 | 808.2
+2025-03-01 00:00 | 1645 | 936.4 | 1642 | 895.4
+2025-04-01 00:00 | 1649 | 902.7 | 1643 | 888.7
+2025-05-01 00:00 | 1648 | 909.7 | 1642 | 893.8
+2025-06-01 00:00 | 1645 | 897.6 | 1642 | 857.5
+2025-07-01 00:00 | 1644 | 837.4 | 1642 | 814.4
+2025-08-01 00:00 | 1644 | 856.1 | 1636 | 799.8
+2025-09-01 00:00 | 1645 | 859 | 1633 | 803.9
+2025-10-01 00:00 | 1566 | 777.5 | 1559 | 765.1
+2025-11-01 00:00 | 1486 | 787.1 | 1419 | 700.8
+2025-12-01 00:00 | 1502 | 801 | 1389 | 690.8
+2026-01-01 00:00 | 1503 | 833 | 1494 | 752.8
+2026-02-01 00:00 | 1505 | 815.8 | 1502 | 806.4
+2026-03-01 00:00 | 1640 | 1640 | 1594 | 1562
+2026-04-01 00:00 | 938 | 1650 | 906 | 1643
+2026-05-01 00:00 | 900 | 1663 | 890.8 | 1643
+2026-06-01 00:00 | 880.9 | 1646 | 864.8 | 1643
+2026-07-01 00:00 | 845.2 | 1646 | 823.1 | 1642
+2026-08-01 00:00 | 845.9 | 1644 | 809.8 | 1637
+2026-09-01 00:00 | 843.4 | 1629 | 790.6 | 1618
+2026-10-01 00:00 | 762.9 | 1576 | 756.9 | 1572
+
+### pv_null_by_hour (24 rows)
+hour | rows | PV1_MW_null_pct | PV2_MW_null_pct
+0 | 76697 | 92.56 | 94.37
+1 | 76719 | 92.4 | 94.41
+2 | 76695 | 92.59 | 94.45
+3 | 76696 | 92.4 | 94.44
+4 | 76720 | 92.56 | 94.49
+5 | 76756 | 84.26 | 83.63
+6 | 76707 | 35.98 | 30.7
+7 | 76602 | 5.522 | 1.726
+8 | 76624 | 4.808 | 0.521
+9 | 76607 | 4.566 | 0.39
+10 | 76589 | 5.135 | 2.38
+11 | 76673 | 9.344 | 15.92
+12 | 76724 | 10.28 | 19.2
+13 | 76611 | 6.301 | 5.826
+14 | 76605 | 4.706 | 1.093
+15 | 76756 | 4.444 | 0.563
+16 | 76891 | 4.393 | 0.658
+17 | 76917 | 10.47 | 9.033
+18 | 76845 | 48.53 | 46.72
+19 | 76811 | 89.08 | 91.15
+20 | 76703 | 92.27 | 94.44
+21 | 76673 | 92.25 | 94.41
+22 | 76697 | 92.46 | 94.37
+23 | 76727 | 92.35 | 94.37
+
+### pv_range (1 rows)
+min_ts | max_ts | rows | distinct_ts | null_ts
+2023-03-18 14:48 | 2026-10-08 17:30 | 1841045 | 1839190 | 0
+
+### pv_rules (4 rows)
+rule | condition | violations | pct
+PV1_MW_negative | PV1_MW < 0 | 25019 | 1.359
+PV1_MW_above_1700MW | PV1_MW > 1700 | 2718 | 0.1476
+PV2_MW_negative | PV2_MW < 0 | 45083 | 2.449
+PV2_MW_above_1700MW | PV2_MW > 1700 | 0 | 0
+
+### pv_stuck_runs (0 rows)
+column | value | start | end | rows
+
+
+### solcast_pv1_notes (11 rows)
+  missing_solcast_columns: []
+  extra_columns: ['period', 'Load_Datetime']
+  issue_time_like_columns: ['Load_Datetime']
+  now: 2026-10-08 13:40:54.385075
+  max_period_end: 2025-11-19 21:00:00
+  future_rows: 0
+  period_end_with_multiple_rows: 0 (conflicting: 0)
+  native_interval_min: 15
+  gaps: 0
+  days_below_99pct: 2 of 1055
+  peak_hour: 08:00 -> looks like UTC
+
+### solcast_pv1_column_stats (17 rows)
+column | rows | nulls | zeros | min | p01_p50_p99_p999 | max
+air_temp | 101185 | 0 | 0 | 11 | [14, 30, 44, 46] | 46
+albedo | 101185 | 0 | 0 | 0.33 | [0.33, 0.34, 0.37, 0.37] | 0.37
+azimuth | 101185 | 0 | 128 | -180 | [-170, 0, 172, 179] | 180
+clearsky_dhi | 101185 | 0 | 49749 | 0 | [0, 4, 410, 469] | 498
+clearsky_dni | 101185 | 0 | 51363 | 0 | [0, 0, 881, 939] | 986
+clearsky_ghi | 101185 | 0 | 49749 | 0 | [0, 4, 1001, 1046] | 1078
+clearsky_gti | 101185 | 0 | 49760 | 0 | [0, 4, 1033, 1092] | 1126
+cloud_opacity | 101185 | 0 | 58441 | 0 | [0, 0, 81.7, 91.4] | 96.7
+dewpoint_temp | 101185 | 0 | 36 | -7.3 | [1.2, 15.5, 27, 29.2] | 30.5
+dhi | 101185 | 0 | 49819 | 0 | [0, 3, 436, 533] | 626
+dni | 101185 | 0 | 54690 | 0 | [0, 0, 880, 937] | 986
+ghi | 101185 | 0 | 49819 | 0 | [0, 3, 1001, 1046] | 1078
+gti | 101185 | 0 | 49827 | 0 | [0, 3, 1032, 1091] | 1126
+precipitation_rate | 101185 | 0 | 99917 | 0 | [0, 0, 0.1, 3.2] | 15.7
+relative_humidity | 101185 | 0 | 0 | 7.1 | [12.6, 44.2, 93, 98.2] | 100
+wind_speed_10m | 101185 | 0 | 3 | 0 | [0.5, 3.1, 7.9, 9.5] | 12.3
+zenith | 101185 | 0 | 0 | 1 | [8, 89, 171, 177] | 178
+
+### solcast_pv1_completeness (1 rows)
+min_ts | max_ts | interval_min | expected_rows | actual_distinct_ts | missing_rows | completeness_pct
+2022-12-31 21:00 | 2025-11-19 21:00 | 15 | 101185 | 101185 | 0 | 100
+
+### solcast_pv1_completeness_per_day (12 of 1055 rows)
+date | timestamps | expected | timestamp_pct | ghi_pct | dni_pct | dhi_pct | gti_pct | clearsky_ghi_pct | air_temp_pct | cloud_opacity_pct
+2022-12-31 | 12 | 96 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5
+2023-01-01 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-02 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-03 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-04 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-05 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-06 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-07 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-08 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-09 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-10 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-11 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+
+### solcast_pv1_gaps (0 rows)
+last_before_gap | first_after_gap | missing_minutes
+
+
+### solcast_pv1_history (5 rows)
+version | timestamp | operation | operationParameters
+4 | 2026-06-24 07:00 | ADD COLUMNS | {columns=[{"column":{"name":"Load_Datetime","type":"string","nullable":true,"metadata":{}}}]}
+3 | 2026-04-14 18:28 | VACUUM END | {status=COMPLETED}
+2 | 2026-04-14 18:28 | VACUUM START | {retentionCheckEnabled=false, defaultRetentionMillis=604800000}
+1 | 2026-02-24 10:33 | CREATE OR REPLACE TABLE AS SELECT | {partitionBy=[], clusterBy=[], description=, isManaged=true, properties={"delta.parquet.compression.codec":"zstd","delta.enableDeletionVectors":"true"}, statsOnLoad=true}
+0 | 2026-02-24 10:33 | CREATE OR REPLACE TABLE AS SELECT | {partitionBy=[], clusterBy=[], description=, isManaged=true, properties={"delta.parquet.compression.codec":"zstd","delta.enableDeletionVectors":"true"}, statsOnLoad=true}
+
+### solcast_pv1_hourly_profile (12 of 24 rows)
+hour | avg_zenith | avg_clearsky_ghi | avg_ghi
+0 | 116.3 | 0 | 0
+1 | 103.4 | 0.1409 | 0.1176
+2 | 90.25 | 25.21 | 23.77
+3 | 77.08 | 147 | 141
+4 | 64.08 | 354.6 | 343.7
+5 | 51.48 | 563.6 | 548.4
+6 | 39.74 | 732.9 | 715.6
+7 | 29.72 | 842.3 | 822.4
+8 | 24.11 | 881.8 | 860
+9 | 28.63 | 848.3 | 823.8
+10 | 38.38 | 744.6 | 725.3
+11 | 50.01 | 579.9 | 560.8
+
+### solcast_pv1_interval_profile (1 rows)
+gap_min | count
+15 | 101184
+
+### solcast_pv1_low_days (2 rows)
+date | timestamps | expected | timestamp_pct | ghi_pct | dni_pct | dhi_pct | gti_pct | clearsky_ghi_pct | air_temp_pct | cloud_opacity_pct
+2022-12-31 | 12 | 96 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5
+2025-11-19 | 85 | 96 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54
+
+### solcast_pv1_null_rates (34 rows)
+period | rows | column | null_pct
+day | 50614 | air_temp | 0
+night | 50571 | air_temp | 0
+day | 50614 | albedo | 0
+night | 50571 | albedo | 0
+day | 50614 | azimuth | 0
+night | 50571 | azimuth | 0
+day | 50614 | clearsky_dhi | 0
+night | 50571 | clearsky_dhi | 0
+day | 50614 | clearsky_dni | 0
+night | 50571 | clearsky_dni | 0
+day | 50614 | clearsky_ghi | 0
+night | 50571 | clearsky_ghi | 0
+day | 50614 | clearsky_gti | 0
+night | 50571 | clearsky_gti | 0
+day | 50614 | cloud_opacity | 0
+night | 50571 | cloud_opacity | 0
+day | 50614 | dewpoint_temp | 0
+night | 50571 | dewpoint_temp | 0
+day | 50614 | dhi | 0
+night | 50571 | dhi | 0
+day | 50614 | dni | 0
+night | 50571 | dni | 0
+day | 50614 | ghi | 0
+night | 50571 | ghi | 0
+day | 50614 | gti | 0
+night | 50571 | gti | 0
+day | 50614 | precipitation_rate | 0
+night | 50571 | precipitation_rate | 0
+day | 50614 | relative_humidity | 0
+night | 50571 | relative_humidity | 0
+day | 50614 | wind_speed_10m | 0
+night | 50571 | wind_speed_10m | 0
+day | 50614 | zenith | 0
+night | 50571 | zenith | 0
+
+### solcast_pv1_range (1 rows)
+min_ts | max_ts | rows | distinct_ts | null_ts
+2022-12-31 21:00 | 2025-11-19 21:00 | 101185 | 101185 | 0
+
+### solcast_pv1_rules (16 rows)
+rule | condition | violations | pct
+negative_irradiance | ghi < 0 OR dni < 0 OR dhi < 0 OR gti < 0 OR clearsky_ghi < 0 OR clearsky_dni < 0 OR clearsky_dhi < 0 OR clearsky_gti < 0 | 0 | 0
+irradiance_at_night | zenith > 90 AND (ghi > 5 OR dni > 5 OR dhi > 5) | 0 | 0
+clearsky_at_night | zenith > 90 AND clearsky_ghi > 5 | 0 | 0
+ghi_far_above_clearsky | ghi > clearsky_ghi * 1.2 AND ghi - clearsky_ghi > 50 | 0 | 0
+dni_far_above_clearsky | dni > clearsky_dni * 1.2 AND dni - clearsky_dni > 50 | 0 | 0
+ghi_above_1400 | ghi > 1400 | 0 | 0
+ghi_closure_error | zenith < 85 AND abs(ghi - (dni * cos(radians(zenith)) + dhi)) > greatest(50, 0.1 * ghi) | 0 | 0
+cloud_opacity_out_of_0_100 | cloud_opacity < 0 OR cloud_opacity > 100 | 0 | 0
+rh_out_of_0_100 | relative_humidity < 0 OR relative_humidity > 100 | 0 | 0
+zenith_out_of_0_180 | zenith < 0 OR zenith > 180 | 0 | 0
+azimuth_out_of_range | azimuth < -180 OR azimuth > 360 | 0 | 0
+albedo_out_of_0_1 | albedo < 0 OR albedo > 1 | 0 | 0
+air_temp_implausible | air_temp < -5 OR air_temp > 60 | 0 | 0
+dewpoint_above_air_temp | dewpoint_temp > air_temp + 0.5 | 0 | 0
+wind_out_of_range | wind_speed_10m < 0 OR wind_speed_10m > 50 | 0 | 0
+precip_negative | precipitation_rate < 0 | 0 | 0
+
+### solcast_pv1_stuck_runs (12 of 1578 rows)
+column | value | start | end | rows
+air_temp | 22 | 2024-04-16 19:00 | 2024-04-17 04:15 | 38
+air_temp | 19 | 2023-01-18 18:45 | 2023-01-19 03:45 | 37
+air_temp | 17 | 2023-01-25 14:45 | 2023-01-25 23:45 | 37
+air_temp | 24 | 2023-03-13 18:45 | 2023-03-14 03:45 | 37
+air_temp | 17 | 2023-01-24 20:00 | 2023-01-25 04:30 | 35
+air_temp | 20 | 2024-01-16 20:00 | 2024-01-17 04:30 | 35
+air_temp | 20 | 2023-01-06 17:30 | 2023-01-07 01:15 | 32
+air_temp | 18 | 2024-02-26 19:45 | 2024-02-27 03:30 | 32
+air_temp | 21 | 2024-03-04 22:30 | 2024-03-05 06:15 | 32
+air_temp | 14 | 2023-02-10 20:15 | 2023-02-11 03:45 | 31
+air_temp | 28 | 2023-04-12 18:45 | 2023-04-13 02:15 | 31
+air_temp | 34 | 2023-08-12 20:15 | 2023-08-13 03:30 | 30
+
+### solcast_pv1_stuck_summary (4 rows)
+column | runs | rows_affected | longest
+air_temp | 1482 | 24512 | 38
+cloud_opacity | 15 | 216 | 24
+relative_humidity | 2 | 28 | 16
+wind_speed_10m | 79 | 1092 | 21
+
+### solcast_pv1_vs_pv2 (1 rows)
+common_ts | identical_ghi_pct | corr | mean_abs_diff
+101185 | 49.8 | 0.9934 | 12.69
+
+### solcast_pv2_notes (11 rows)
+  missing_solcast_columns: ['relative_humidity']
+  extra_columns: ['wind_direction_10m', 'period', 'Load_Datetime']
+  issue_time_like_columns: ['Load_Datetime']
+  now: 2026-10-08 13:45:56.235755
+  max_period_end: 2025-11-19 21:00:00
+  future_rows: 0
+  period_end_with_multiple_rows: 0 (conflicting: 0)
+  native_interval_min: 15
+  gaps: 0
+  days_below_99pct: 2 of 1055
+  peak_hour: 08:00 -> looks like UTC
+
+### solcast_pv2_column_stats (16 rows)
+column | rows | nulls | zeros | min | p01_p50_p99_p999 | max
+air_temp | 101185 | 0 | 0 | 11 | [15, 30, 44, 46] | 47
+albedo | 101185 | 0 | 0 | 0.32 | [0.33, 0.33, 0.37, 0.37] | 0.37
+azimuth | 101185 | 0 | 111 | -180 | [-170, 0, 172, 179] | 180
+clearsky_dhi | 101185 | 0 | 49743 | 0 | [0, 3, 418, 473] | 500
+clearsky_dni | 101185 | 0 | 51475 | 0 | [0, 0, 857, 929] | 967
+clearsky_ghi | 101185 | 0 | 49742 | 0 | [0, 3, 998, 1048] | 1080
+clearsky_gti | 101185 | 0 | 49749 | 0 | [0, 3, 1024, 1085] | 1130
+cloud_opacity | 101185 | 0 | 55416 | 0 | [0, 0, 78.3, 91.4] | 96.5
+dewpoint_temp | 101185 | 0 | 19 | -8.1 | [3.1, 17.2, 28.7, 30.3] | 31.4
+dhi | 101185 | 0 | 49831 | 0 | [0, 2, 441, 547] | 632
+dni | 101185 | 0 | 54745 | 0 | [0, 0, 856, 929] | 967
+ghi | 101185 | 0 | 49830 | 0 | [0, 2, 996, 1046] | 1080
+gti | 101185 | 0 | 49842 | 0 | [0, 2, 1022, 1084] | 1130
+precipitation_rate | 101185 | 0 | 100149 | 0 | [0, 0, 0.1, 1.6] | 14.9
+wind_speed_10m | 101185 | 0 | 5 | 0 | [0.4, 3.1, 8.7, 10.5] | 12.6
+zenith | 101185 | 0 | 0 | 1 | [7, 90, 171, 177] | 179
+
+### solcast_pv2_completeness (1 rows)
+min_ts | max_ts | interval_min | expected_rows | actual_distinct_ts | missing_rows | completeness_pct
+2022-12-31 21:00 | 2025-11-19 21:00 | 15 | 101185 | 101185 | 0 | 100
+
+### solcast_pv2_completeness_per_day (12 of 1055 rows)
+date | timestamps | expected | timestamp_pct | ghi_pct | dni_pct | dhi_pct | gti_pct | clearsky_ghi_pct | air_temp_pct | cloud_opacity_pct
+2022-12-31 | 12 | 96 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5
+2023-01-01 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-02 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-03 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-04 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-05 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-06 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-07 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-08 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-09 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-10 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+2023-01-11 | 96 | 96 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100
+
+### solcast_pv2_gaps (0 rows)
+last_before_gap | first_after_gap | missing_minutes
+
+
+### solcast_pv2_history (4 rows)
+version | timestamp | operation | operationParameters
+3 | 2026-06-24 07:00 | ADD COLUMNS | {columns=[{"column":{"name":"Load_Datetime","type":"string","nullable":true,"metadata":{}}}]}
+2 | 2026-02-24 10:34 | CREATE OR REPLACE TABLE AS SELECT | {partitionBy=[], clusterBy=[], description=, isManaged=true, properties={"delta.parquet.compression.codec":"zstd","delta.enableDeletionVectors":"true"}, statsOnLoad=true}
+1 | 2026-02-24 10:34 | CREATE OR REPLACE TABLE AS SELECT | {partitionBy=[], clusterBy=[], description=, isManaged=true, properties={"delta.parquet.compression.codec":"zstd","delta.enableDeletionVectors":"true"}, statsOnLoad=true}
+0 | 2026-02-24 08:25 | CREATE TABLE AS SELECT | {partitionBy=[], clusterBy=[], description=, isManaged=true, properties={"delta.parquet.compression.codec":"zstd","delta.enableDeletionVectors":"true"}, statsOnLoad=true}
+
+### solcast_pv2_hourly_profile (12 of 24 rows)
+hour | avg_zenith | avg_clearsky_ghi | avg_ghi
+0 | 117.1 | 0 | 0
+1 | 104.2 | 0.03676 | 0.02965
+2 | 91.05 | 20.7 | 19.5
+3 | 77.84 | 133 | 128
+4 | 64.76 | 335.3 | 324.2
+5 | 52.08 | 545.2 | 529.6
+6 | 40.22 | 719 | 701.2
+7 | 29.98 | 833.4 | 814.7
+8 | 23.82 | 877.9 | 856.1
+9 | 27.87 | 849.8 | 826.2
+10 | 37.54 | 750.6 | 729.7
+11 | 49.16 | 589.7 | 571.5
+
+### solcast_pv2_interval_profile (1 rows)
+gap_min | count
+15 | 101184
+
+### solcast_pv2_low_days (2 rows)
+date | timestamps | expected | timestamp_pct | ghi_pct | dni_pct | dhi_pct | gti_pct | clearsky_ghi_pct | air_temp_pct | cloud_opacity_pct
+2022-12-31 | 12 | 96 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5 | 12.5
+2025-11-19 | 85 | 96 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54 | 88.54
+
+### solcast_pv2_null_rates (32 rows)
+period | rows | column | null_pct
+day | 50507 | air_temp | 0
+night | 50678 | air_temp | 0
+day | 50507 | albedo | 0
+night | 50678 | albedo | 0
+day | 50507 | azimuth | 0
+night | 50678 | azimuth | 0
+day | 50507 | clearsky_dhi | 0
+night | 50678 | clearsky_dhi | 0
+day | 50507 | clearsky_dni | 0
+night | 50678 | clearsky_dni | 0
+day | 50507 | clearsky_ghi | 0
+night | 50678 | clearsky_ghi | 0
+day | 50507 | clearsky_gti | 0
+night | 50678 | clearsky_gti | 0
+day | 50507 | cloud_opacity | 0
+night | 50678 | cloud_opacity | 0
+day | 50507 | dewpoint_temp | 0
+night | 50678 | dewpoint_temp | 0
+day | 50507 | dhi | 0
+night | 50678 | dhi | 0
+day | 50507 | dni | 0
+night | 50678 | dni | 0
+day | 50507 | ghi | 0
+night | 50678 | ghi | 0
+day | 50507 | gti | 0
+night | 50678 | gti | 0
+day | 50507 | precipitation_rate | 0
+night | 50678 | precipitation_rate | 0
+day | 50507 | wind_speed_10m | 0
+night | 50678 | wind_speed_10m | 0
+day | 50507 | zenith | 0
+night | 50678 | zenith | 0
+
+### solcast_pv2_range (1 rows)
+min_ts | max_ts | rows | distinct_ts | null_ts
+2022-12-31 21:00 | 2025-11-19 21:00 | 101185 | 101185 | 0
+
+### solcast_pv2_rules (15 rows)
+rule | condition | violations | pct
+negative_irradiance | ghi < 0 OR dni < 0 OR dhi < 0 OR gti < 0 OR clearsky_ghi < 0 OR clearsky_dni < 0 OR clearsky_dhi < 0 OR clearsky_gti < 0 | 0 | 0
+irradiance_at_night | zenith > 90 AND (ghi > 5 OR dni > 5 OR dhi > 5) | 0 | 0
+clearsky_at_night | zenith > 90 AND clearsky_ghi > 5 | 0 | 0
+ghi_far_above_clearsky | ghi > clearsky_ghi * 1.2 AND ghi - clearsky_ghi > 50 | 0 | 0
+dni_far_above_clearsky | dni > clearsky_dni * 1.2 AND dni - clearsky_dni > 50 | 0 | 0
+ghi_above_1400 | ghi > 1400 | 0 | 0
+ghi_closure_error | zenith < 85 AND abs(ghi - (dni * cos(radians(zenith)) + dhi)) > greatest(50, 0.1 * ghi) | 0 | 0
+cloud_opacity_out_of_0_100 | cloud_opacity < 0 OR cloud_opacity > 100 | 0 | 0
+zenith_out_of_0_180 | zenith < 0 OR zenith > 180 | 0 | 0
+azimuth_out_of_range | azimuth < -180 OR azimuth > 360 | 0 | 0
+albedo_out_of_0_1 | albedo < 0 OR albedo > 1 | 0 | 0
+air_temp_implausible | air_temp < -5 OR air_temp > 60 | 0 | 0
+dewpoint_above_air_temp | dewpoint_temp > air_temp + 0.5 | 0 | 0
+wind_out_of_range | wind_speed_10m < 0 OR wind_speed_10m > 50 | 0 | 0
+precip_negative | precipitation_rate < 0 | 0 | 0
+
+### solcast_pv2_stuck_runs (12 of 1435 rows)
+column | value | start | end | rows
+air_temp | 18 | 2024-02-11 16:15 | 2024-02-12 05:30 | 54
+air_temp | 19 | 2024-12-15 19:00 | 2024-12-16 04:15 | 38
+air_temp | 20 | 2024-01-03 19:15 | 2024-01-04 04:15 | 37
+air_temp | 36 | 2023-07-24 17:00 | 2023-07-25 00:30 | 31
+air_temp | 20 | 2024-01-26 20:45 | 2024-01-27 04:15 | 31
+air_temp | 23 | 2024-03-09 01:45 | 2024-03-09 09:15 | 31
+air_temp | 17 | 2024-02-29 20:45 | 2024-03-01 04:00 | 30
+air_temp | 17 | 2023-02-09 21:30 | 2023-02-10 04:15 | 28
+air_temp | 19 | 2023-02-16 21:30 | 2023-02-17 04:15 | 28
+air_temp | 22 | 2024-03-04 22:30 | 2024-03-05 05:15 | 28
+air_temp | 39 | 2024-08-07 08:00 | 2024-08-07 14:45 | 28
+air_temp | 16 | 2023-01-26 21:30 | 2023-01-27 04:00 | 27
+
+### solcast_pv2_stuck_summary (3 rows)
+column | runs | rows_affected | longest
+air_temp | 1347 | 20964 | 54
+cloud_opacity | 9 | 150 | 22
+wind_speed_10m | 79 | 1105 | 21
+
+### source_monthly_timestamps (12 of 47 rows)
+month | pv_telemetry | solcast_pv1 | solcast_pv2
+2022-12-01 00:00 |  | 12 | 12
+2023-01-01 00:00 |  | 2976 | 2976
+2023-02-01 00:00 |  | 2688 | 2688
+2023-03-01 00:00 | 19262 | 2976 | 2976
+2023-04-01 00:00 | 43171 | 2880 | 2880
+2023-05-01 00:00 | 44633 | 2976 | 2976
+2023-06-01 00:00 | 43200 | 2880 | 2880
+2023-07-01 00:00 | 44640 | 2976 | 2976
+2023-08-01 00:00 | 44640 | 2976 | 2976
+2023-09-01 00:00 | 43189 | 2880 | 2880
+2023-10-01 00:00 | 44639 | 2976 | 2976
+2023-11-01 00:00 | 43151 | 2880 | 2880
+
+### source_ranges (3 rows)
+source | min_ts | max_ts | rows | distinct_ts
+pv_telemetry | 2023-03-18 14:48 | 2026-10-08 17:43 | 1841058 | 1839203
+solcast_pv1 | 2022-12-31 21:00 | 2025-11-19 21:00 | 101185 | 101185
+solcast_pv2 | 2022-12-31 21:00 | 2025-11-19 21:00 | 101185 | 101185
+
+### lag_best_5min (4 rows)
+source | pv_col | offset_min | corr | n
+solcast_pv1 | PV1_MW | 300 | -0.008357 | 93607
+solcast_pv1 | PV2_MW | 225 | 0.9888 | 93602
+solcast_pv2 | PV1_MW | 300 | -0.008112 | 93607
+solcast_pv2 | PV2_MW | 225 | 0.9828 | 93602
+
+### lag_best_hourly (4 rows)
+source | pv_col | offset_min | corr | n
+solcast_pv1 | PV1_MW | 480 | 0.02863 | 23420
+solcast_pv1 | PV2_MW | 240 | 0.9902 | 23416
+solcast_pv2 | PV1_MW | 480 | 0.02829 | 23420
+solcast_pv2 | PV2_MW | 240 | 0.9838 | 23416
+
+### lag_scan_5min (12 of 100 rows)
+source | pv_col | offset_min | corr | n
+solcast_pv1 | PV1_MW | 180 | -0.01343 | 93599
+solcast_pv1 | PV1_MW | 185 | -0.02778 | 93603
+solcast_pv1 | PV1_MW | 190 | -0.02766 | 93596
+solcast_pv1 | PV1_MW | 195 | -0.01301 | 93600
+solcast_pv1 | PV1_MW | 200 | -0.02774 | 93604
+solcast_pv1 | PV1_MW | 205 | -0.02762 | 93597
+solcast_pv1 | PV1_MW | 210 | -0.0123 | 93601
+solcast_pv1 | PV1_MW | 215 | -0.0267 | 93605
+solcast_pv1 | PV1_MW | 220 | -0.02676 | 93598
+solcast_pv1 | PV1_MW | 225 | -0.01251 | 93602
+solcast_pv1 | PV1_MW | 230 | -0.02606 | 93606
+solcast_pv1 | PV1_MW | 235 | -0.0259 | 93599
+
+### lag_scan_hourly (12 of 68 rows)
+source | pv_col | offset_min | corr | n
+solcast_pv1 | PV1_MW | -480 | 0.0026 | 23404
+solcast_pv1 | PV1_MW | -420 | -0.001659 | 23405
+solcast_pv1 | PV1_MW | -360 | -0.004426 | 23406
+solcast_pv1 | PV1_MW | -300 | -0.005613 | 23407
+solcast_pv1 | PV1_MW | -240 | -0.00452 | 23408
+solcast_pv1 | PV1_MW | -180 | -0.002127 | 23409
+solcast_pv1 | PV1_MW | -120 | -0.0006426 | 23410
+solcast_pv1 | PV1_MW | -60 | -0.0007657 | 23411
+solcast_pv1 | PV1_MW | 0 | -0.002169 | 23412
+solcast_pv1 | PV1_MW | 60 | -0.002463 | 23413
+solcast_pv1 | PV1_MW | 120 | -0.002265 | 23414
+solcast_pv1 | PV1_MW | 180 | -0.00119 | 23415
+
+### site_mapping_corr (2 rows)
+source | PV1_MW | PV2_MW
+solcast_pv1 | 0.003127 | 0.9902
+solcast_pv2 | 0.00237 | 0.9838
+
+### alignment_notes (2 rows)
+  common_overlap_window: 2023-03-18 14:48:00 -> 2025-11-19 21:00:00
+  PV1_MW_vs_PV2_MW_corr: -0.0041685275634983105
+
+### silver_notes (3 rows)
+  duplicate_site_ts: 0
+  null_pv_in_silver: 0
+  convention_used: swapped mapping, bucket_start (corr=0.9999)
+
+### silver_bronze_alignment (8 rows)
+site | key_match_pct | corr | mapping | convention
+PV1 | 99.66 | 0.9994 | swapped | bucket_start
+PV1 | 99.66 | 0.9781 | swapped | bucket_end
+PV1 | 99.66 | 0.6593 | unswapped | bucket_start
+PV1 | 99.66 | 0.6582 | unswapped | bucket_end
+PV2 | 99.66 | 0.9999 | swapped | bucket_start
+PV2 | 99.66 | 0.9953 | swapped | bucket_end
+PV2 | 99.66 | 0.6737 | unswapped | bucket_start
+PV2 | 99.66 | 0.6734 | unswapped | bucket_end
+
+### silver_day_zero_breakdown (5 rows)
+site | bronze_state | count
+PV1 | bronze_all_null | 1644
+PV1 | no_bronze_rows | 323
+PV2 | bronze_all_null | 19
+PV2 | bronze_near_zero | 7
+PV2 | no_bronze_rows | 326
+
+### silver_day_zero_monthly (12 of 38 rows)
+site | month | no_bronze_rows | bronze_all_null | bronze_near_zero | bronze_has_power
+PV1 | 2023-11-01 00:00 | 7 | 0 | 0 | 0
+PV1 | 2023-12-01 00:00 | 3 | 0 | 0 | 0
+PV1 | 2024-01-01 00:00 | 34 | 8 | 0 | 0
+PV1 | 2024-02-01 00:00 | 36 | 3 | 0 | 0
+PV1 | 2024-04-01 00:00 | 0 | 6 | 0 | 0
+PV1 | 2024-05-01 00:00 | 0 | 45 | 0 | 0
+PV1 | 2024-06-01 00:00 | 0 | 160 | 0 | 0
+PV1 | 2024-07-01 00:00 | 0 | 86 | 0 | 0
+PV1 | 2024-08-01 00:00 | 0 | 115 | 0 | 0
+PV1 | 2024-09-01 00:00 | 0 | 131 | 0 | 0
+PV1 | 2024-10-01 00:00 | 0 | 76 | 0 | 0
+PV1 | 2024-11-01 00:00 | 0 | 75 | 0 | 0
+
+### silver_masked_runs (12 of 1162 rows)
+site | start | end | steps_5min
+PV1 | 2024-12-31 07:45 | 2024-12-31 17:25 | 117
+PV2 | 2024-12-31 07:45 | 2024-12-31 17:25 | 117
+PV1 | 2025-02-16 07:45 | 2025-02-16 11:05 | 41
+PV2 | 2025-02-16 07:45 | 2025-02-16 11:05 | 41
+PV2 | 2024-02-10 07:30 | 2024-02-10 10:40 | 39
+PV1 | 2024-02-10 07:45 | 2024-02-10 10:40 | 36
+PV1 | 2024-01-29 11:35 | 2024-01-29 14:15 | 33
+PV2 | 2024-01-29 11:35 | 2024-01-29 14:15 | 33
+PV1 | 2025-09-13 13:40 | 2025-09-13 16:10 | 31
+PV2 | 2025-09-13 13:40 | 2025-09-13 16:10 | 31
+PV1 | 2025-10-22 13:05 | 2025-10-22 15:10 | 26
+PV2 | 2025-10-22 13:05 | 2025-10-22 15:10 | 26
+
+### silver_masked_runs_summary (2 rows)
+site | runs | runs_longer_than_30min | steps_in_long_runs
+PV1 | 1126 | 7 | 292
+PV2 | 36 | 6 | 287
+
+### silver_masking_summary (2 rows)
+site | daytime_rows | daytime_zero_rows | masked_missing | zero_but_bronze_has_power | masked_pct_of_daytime
+PV1 | 99087 | 1967 | 1967 | 0 | 1.985
+PV2 | 99315 | 352 | 345 | 0 | 0.347
+
+### silver_range (2 rows)
+site | min_ts | max_ts | rows | distinct_ts | null_ts
+PV1 | 2023-11-01 00:00 | 2026-06-03 10:55 | 272292 | 272292 | 0
+PV2 | 2023-11-01 00:00 | 2026-06-03 10:55 | 272292 | 272292 | 0
+
+### silver_vs_preprocessed_zeros (2 rows)
+site | daytime_rows | daytime_zero_rows | pre_daytime_rows | pre_daytime_zero_rows
+PV1 | 99087 | 1967 | 99087 | 226
+PV2 | 99315 | 352 | 99315 | 227
+
+### reuniwatt_dim_forecast_product (0 rows)
+product_id | site | horizon | panel_type | granularity_min | api_endpoint | _updated_at
+
+
+### reuniwatt_dim_pv_site (0 rows)
+site | site_name | panel_type | latitude | longitude | irradiance_cols | _updated_at
+
+
+### reuniwatt_irradiance_notes (4 rows)
+  missing_columns: []
+  unexpected_columns: []
+  duplicate_keys: 0 (conflicting: 0)
+  timestamps_tz_used: UTC
+
+### reuniwatt_irradiance_backup_compare (1 rows)
+rows_main | rows_backup | keys_only_in_main | keys_only_in_backup
+6446726 | 72844848 | 3198662 | 0
+
+### reuniwatt_irradiance_backup_snapshots (12 of 676 rows)
+_backup_run_id | backup_at | rows | latest_issue_in_snapshot
+995deedb-02d | 2026-10-01 13:02 | 4752 | 2026-10-01 12:54
+1cbfac44-c6b | 2026-10-01 13:17 | 9504 | 2026-10-01 13:01
+89d98577-ffc | 2026-10-01 13:32 | 14256 | 2026-10-01 13:16
+e78cd7c9-a1f | 2026-10-01 13:47 | 19008 | 2026-10-01 13:31
+c0041ecd-31a | 2026-10-01 14:02 | 23760 | 2026-10-01 13:46
+1f71b150-5b9 | 2026-10-01 14:17 | 64512 | 2026-10-01 14:01
+f4221fcd-6a5 | 2026-10-01 14:32 | 33264 | 2026-10-01 14:16
+08c0e147-78c | 2026-10-01 14:47 | 38016 | 2026-10-01 14:31
+9c10269d-3d2 | 2026-10-01 15:02 | 42768 | 2026-10-01 14:46
+51bfd48b-a80 | 2026-10-01 15:17 | 47520 | 2026-10-01 15:01
+2f81d8fa-e83 | 2026-10-01 15:32 | 52272 | 2026-10-01 15:16
+d8165904-ad9 | 2026-10-01 15:47 | 57024 | 2026-10-01 15:31
+
+### reuniwatt_irradiance_cadence (12 rows)
+site | provider | horizon | granularity_min | cadence_min | gaps | approx_missing_runs
+pv1 | reuniwatt | dayahead | 5 | 15 | 4 | 270
+pv1 | reuniwatt | intraday | 5 | 720 | 2 | 1463
+pv1 | reuniwatt | intraday | 15 | 15 | 3 | 2.071e+04
+pv1 | reuniwatt | intraday | 60 | 60 | 0 | 0
+pv1 | reuniwatt | weekahead | 5 | 15 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 14.98 | 2 | 69
+pv2 | reuniwatt | dayahead | 5 | 15 | 3 | 270
+pv2 | reuniwatt | intraday | 5 | 5 | 676 | 6.61e+04
+pv2 | reuniwatt | intraday | 15 | 15 | 3 | 2.071e+04
+pv2 | reuniwatt | intraday | 60 | 60 | 0 | 0
+pv2 | reuniwatt | weekahead | 5 | 14.97 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 14.97 | 2 | 69
+
+### reuniwatt_irradiance_column_stats (16 rows)
+column | rows | nulls | zeros | min | p01_p50_p99_p999 | max
+ghi_wm2 | 6446726 | 36000 | 3210064 | 0 | [0, 0, 923.6, 942.2] | 963.1
+dni_wm2 | 6446726 | 36000 | 3327287 | 0 | [0, 0, 859.9, 881.1] | 898.3
+dhi_wm2 | 6446726 | 36000 | 3210064 | 0 | [0, 0, 207.4, 249.3] | 334.6
+bhi_wm2 | 6446726 | 36000 | 3326800 | 0 | [0, 0, 760.5, 788.2] | 813.2
+gti_wm2 | 6446726 | 3241502 | 1627633 | 0 | [0, 0, 951.8, 964.2] | 1016
+gti_east_wm2 | 6446726 | 3241327 | 0 | 2.29e-08 | [0.0004757, 0.001522, 922.9, 943.2] | 965.2
+gti_west_wm2 | 6446726 | 3241327 | 0 | 2.29e-08 | [0.0004757, 0.001522, 922.8, 942.6] | 963.8
+ambient_temp_c | 6446726 | 5669702 | 0 | 24.09 | [25.96, 31.99, 43.26, 43.96] | 44.19
+dewpoint_c | 6446726 | 5669702 | 0 | -1.363 | [2.597, 17.51, 25.55, 25.87] | 26.32
+humidity_pct | 6446726 | 5669702 | 0 | 6 | [8.85, 43.16, 87.8, 90.5] | 91.57
+wind_speed | 6446726 | 5669702 | 0 | 0.02343 | [0.5392, 3.6, 8.694, 10.13] | 10.98
+wind_dir | 6446726 | 5669702 | 0 | 0.002254 | [2.322, 164.5, 358, 359.8] | 360
+cloud_opacity_pct | 6446726 | 6062358 | 142423 | 0 | [0, 0.006762, 0.3637, 0.4747] | 0.5001
+pressure_hpa | 6446726 | 5669702 | 0 | 980.2 | [980.8, 994, 1013, 1015] | 1015
+precip_rate_mmh | 6446726 | 5669702 | 776004 | 0 | [0, 0, 0, 0.02604] | 0.0625
+clearness_idx_pct | 6446726 | 5669702 | 396541 | 0 | [0, 0, 0.7668, 0.7769] | 0.8237
+
+### reuniwatt_irradiance_consistency (3 rows)
+horizon | day_rows | ghi_closure_abs_p50_p95 | ghi_closure_violations | bhi_vs_dni_cosz_abs_p50_p95 | clearness_abs_p50_p95
+dayahead | 360142 | [2.842e-14, 0.019] | 75 | [1.494, 9.543] | [69.44, 75.32]
+intraday | 107257 | [2.842e-14, 0.0004] | 53 | [5, 18.27] | 
+weekahead | 2503952 | [2.842e-14, 0.0003] | 1082 | [8.142, 59.87] | 
+
+### reuniwatt_irradiance_coverage (12 rows)
+site | provider | horizon | granularity_min | first_period | last_period | periods | expected_periods | coverage_pct
+pv1 | reuniwatt | dayahead | 5 | 2026-09-21 17:55 | 2026-10-09 13:45 | 4819 | 5135 | 93.85
+pv1 | reuniwatt | intraday | 5 | 2024-01-23 06:05 | 2026-10-08 19:45 | 38171 | 284997 | 13.39
+pv1 | reuniwatt | intraday | 15 | 2026-02-18 11:30 | 2026-09-29 16:30 | 2234 | 21429 | 10.43
+pv1 | reuniwatt | intraday | 60 | 2026-02-18 11:00 | 2026-02-18 17:00 | 7 | 7 | 100
+pv1 | reuniwatt | weekahead | 5 | 2026-10-01 12:55 | 2026-10-15 13:45 | 4043 | 4043 | 100
+pv1 | reuniwatt | weekahead | 60 | 2026-09-21 17:55 | 2026-10-06 10:30 | 4232 | 353 | 1199
+pv2 | reuniwatt | dayahead | 5 | 2026-09-21 17:55 | 2026-10-09 13:45 | 4819 | 5135 | 93.85
+pv2 | reuniwatt | intraday | 5 | 2026-02-18 11:30 | 2026-10-08 19:45 | 2171 | 66916 | 3.24
+pv2 | reuniwatt | intraday | 15 | 2026-02-18 11:30 | 2026-09-29 16:30 | 2234 | 21429 | 10.43
+pv2 | reuniwatt | intraday | 60 | 2026-02-18 11:00 | 2026-02-18 17:00 | 7 | 7 | 100
+pv2 | reuniwatt | weekahead | 5 | 2026-10-01 12:55 | 2026-10-15 13:45 | 4043 | 4043 | 100
+pv2 | reuniwatt | weekahead | 60 | 2026-09-21 17:55 | 2026-10-06 10:30 | 4232 | 353 | 1199
+
+### reuniwatt_irradiance_day_offset_dist (13 rows)
+horizon | forecast_day_offset | rows
+dayahead | 0 | 385913
+dayahead | 1 | 391111
+intraday |  | 206
+intraday | 0 | 206210
+intraday | 1 | 24118
+weekahead | 0 | 385910
+weekahead | 1 | 777024
+weekahead | 2 | 777024
+weekahead | 3 | 777024
+weekahead | 4 | 777024
+weekahead | 5 | 777024
+weekahead | 6 | 777024
+weekahead | 7 | 391114
+
+### reuniwatt_irradiance_day_offset_mismatch (3 rows)
+horizon | rows | mismatched | null_offset
+dayahead | 777024 | 0 | 0
+intraday | 230534 | 0 | 206
+weekahead | 5439168 | 0 | 0
+
+### reuniwatt_irradiance_history (12 of 30 rows)
+version | timestamp | operation | operationParameters
+1269 | 2026-10-08 13:49 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1268 | 2026-10-08 13:48 | MERGE | {predicate=["((((period_end#45665208 = period_end#45631392) AND (site#45665209 = site#45631397)) AND (provider#45665210 = provider#45631395)) AND (((horizon#45665211 = horizon#45631390) AND (reference_time#45665, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#45631400 > _ingested_at#45665232)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1267 | 2026-10-08 13:33 | MERGE | {predicate=["((((period_end#45038789 = period_end#45018654) AND (site#45038790 = site#45018659)) AND (provider#45038791 = provider#45018657)) AND (((horizon#45038792 = horizon#45018652) AND (reference_time#45038, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#45018662 > _ingested_at#45038813)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1266 | 2026-10-08 13:31 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=false}
+1265 | 2026-10-08 13:19 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1264 | 2026-10-08 13:18 | MERGE | {predicate=["((((period_end#44495193 = period_end#44418837) AND (site#44495194 = site#44418842)) AND (provider#44495195 = provider#44418840)) AND (((horizon#44495196 = horizon#44418835) AND (reference_time#44495, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#44418853 > _ingested_at#44495217)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1263 | 2026-10-08 13:04 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1262 | 2026-10-08 13:04 | MERGE | {predicate=["((((period_end#43788833 = period_end#43772988) AND (site#43788834 = site#43772993)) AND (provider#43788835 = provider#43772991)) AND (((horizon#43788836 = horizon#43772986) AND (reference_time#43788, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#43772996 > _ingested_at#43788857)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1261 | 2026-10-08 12:48 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1260 | 2026-10-08 12:48 | MERGE | {predicate=["((((period_end#43256281 = period_end#43148488) AND (site#43256282 = site#43148493)) AND (provider#43256283 = provider#43148491)) AND (((horizon#43256284 = horizon#43148486) AND (reference_time#43256, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#43148496 > _ingested_at#43256305)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1259 | 2026-10-08 12:33 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1258 | 2026-10-08 12:33 | MERGE | {predicate=["((((period_end#42636073 = period_end#42532576) AND (site#42636074 = site#42532581)) AND (provider#42636075 = provider#42532579)) AND (((horizon#42636076 = horizon#42532574) AND (reference_time#42636, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#42532584 > _ingested_at#42636097)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+
+### reuniwatt_irradiance_hourly_profile (12 of 48 rows)
+site | hour | ghi_wm2 | gti_wm2 | gti_east_wm2 | gti_west_wm2
+pv1 | 0 | 0 |  | 0.001001 | 0.001001
+pv1 | 1 | 0 |  | 0.001001 | 0.001001
+pv1 | 2 | 20.91 |  | 21.38 | 18.04
+pv1 | 3 | 175.1 |  | 201.3 | 148.8
+pv1 | 4 | 401.1 |  | 446.4 | 357.1
+pv1 | 5 | 618.2 |  | 664.3 | 573.8
+pv1 | 6 | 783.4 |  | 816.3 | 751.5
+pv1 | 7 | 872.6 |  | 885.9 | 859.8
+pv1 | 8 | 889.3 |  | 881.2 | 897.7
+pv1 | 9 | 829.8 |  | 801.6 | 858.7
+pv1 | 10 | 697.8 |  | 653.9 | 743.2
+pv1 | 11 | 507.1 |  | 456.1 | 560.1
+
+### reuniwatt_irradiance_humidity_consistency (3 rows)
+horizon | rh_vs_dewpoint_abs_p50_p95 | rh_off_by_more_than_10pts
+dayahead | [0.03399, 0.03833] | 37
+intraday |  | 
+weekahead |  | 
+
+### reuniwatt_irradiance_ingestion (12 rows)
+site | provider | horizon | granularity_min | min_ingest_lag_min | median_ingest_lag_min | max_ingest_lag_min | rows_ingested_before_issue | distinct_ingest_times
+pv1 | reuniwatt | dayahead | 5 | 3.283 | 349.9 | 1.111e+04 | 0 | 653
+pv1 | reuniwatt | intraday | 5 | 3.45 | 349 | 1414578 | 0 | 655
+pv1 | reuniwatt | intraday | 15 | 29.22 | 5355 | 3.211e+05 | 0 | 1
+pv1 | reuniwatt | intraday | 60 | 3.208e+05 | 3.209e+05 | 3.211e+05 | 0 | 1
+pv1 | reuniwatt | weekahead | 5 | 3 | 347.5 | 362 | 0 | 648
+pv1 | reuniwatt | weekahead | 60 | 28.72 | 5354 | 1.111e+04 | 0 | 1
+pv2 | reuniwatt | dayahead | 5 | 2.617 | 360.4 | 1.111e+04 | 0 | 632
+pv2 | reuniwatt | intraday | 5 | 2.767 | 347.4 | 3.211e+05 | 0 | 640
+pv2 | reuniwatt | intraday | 15 | 28.58 | 5369 | 3.211e+05 | 0 | 1
+pv2 | reuniwatt | intraday | 60 | 3.208e+05 | 3.209e+05 | 3.211e+05 | 0 | 1
+pv2 | reuniwatt | weekahead | 5 | 2.45 | 347.1 | 364.3 | 0 | 613
+pv2 | reuniwatt | weekahead | 60 | 28.28 | 5353 | 1.111e+04 | 0 | 1
+
+### reuniwatt_irradiance_key_nulls (6 rows)
+rule | condition | violations | pct
+null_site | site IS NULL | 0 | 0
+null_provider | provider IS NULL | 0 | 0
+null_horizon | horizon IS NULL | 0 | 0
+null_granularity_min | granularity_min IS NULL | 0 | 0
+null_reference_time | reference_time IS NULL | 0 | 0
+null_period_end | period_end IS NULL | 0 | 0
+
+### reuniwatt_irradiance_lag_best (4 rows)
+site | pv_col | offset_h | corr
+pv1 | PV1_MW | 4 | 0.9649
+pv1 | PV2_MW | 4 | 0.9818
+pv2 | PV1_MW | 4 | 0.9663
+pv2 | PV2_MW | 4 | 0.9827
+
+### reuniwatt_irradiance_lag_scan_vs_pv (12 of 52 rows)
+site | pv_col | offset_h | corr
+pv1 | PV1_MW | -6 | -0.5799
+pv1 | PV1_MW | -5 | -0.5457
+pv1 | PV1_MW | -4 | -0.471
+pv1 | PV1_MW | -3 | -0.3461
+pv1 | PV1_MW | -2 | -0.1747
+pv1 | PV1_MW | -1 | 0.03219
+pv1 | PV1_MW | 0 | 0.2667
+pv1 | PV1_MW | 1 | 0.5099
+pv1 | PV1_MW | 2 | 0.7315
+pv1 | PV1_MW | 3 | 0.8953
+pv1 | PV1_MW | 4 | 0.9649
+pv1 | PV1_MW | 5 | 0.92
+
+### reuniwatt_irradiance_lead_time (12 rows)
+site | provider | horizon | granularity_min | min_lead_min | median_lead_min | max_lead_min | max_lead_days | rows_lead_le_0 | rows_lead_lt_0
+pv1 | reuniwatt | dayahead | 5 | 0.5333 | 719.6 | 1440 | 1 | 0 | 0
+pv1 | reuniwatt | intraday | 5 | 0 | 180 | 360 | 0.25 | 72 | 0
+pv1 | reuniwatt | intraday | 15 | 0 | 179.7 | 359.8 | 0.25 | 24 | 0
+pv1 | reuniwatt | intraday | 60 | 0 | 0 | 0 | 0 | 7 | 0
+pv1 | reuniwatt | weekahead | 5 | 0.4 | 5039 | 1.008e+04 | 7 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 0.5333 | 5044 | 1.008e+04 | 7 | 0 | 0
+pv2 | reuniwatt | dayahead | 5 | 0.1667 | 722.8 | 1439 | 1 | 0 | 0
+pv2 | reuniwatt | intraday | 5 | 0 | 179.3 | 359.4 | 0.25 | 72 | 0
+pv2 | reuniwatt | intraday | 15 | 0 | 179.3 | 359.4 | 0.25 | 24 | 0
+pv2 | reuniwatt | intraday | 60 | 0 | 0 | 0 | 0 | 7 | 0
+pv2 | reuniwatt | weekahead | 5 | 0.03333 | 5043 | 1.008e+04 | 7 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 0.1667 | 5043 | 1.008e+04 | 7 | 0 | 0
+
+### reuniwatt_irradiance_low_coverage_days (12 of 275 rows)
+site | provider | horizon | granularity_min | date | periods | expected | pct
+pv1 | reuniwatt | dayahead | 5 | 2026-09-21 | 73 | 288 | 25.3
+pv1 | reuniwatt | dayahead | 5 | 2026-09-30 | 127 | 288 | 44.1
+pv1 | reuniwatt | dayahead | 5 | 2026-10-01 | 133 | 288 | 46.2
+pv1 | reuniwatt | dayahead | 5 | 2026-10-09 | 166 | 288 | 57.6
+pv1 | reuniwatt | intraday | 5 | 2024-01-23 | 143 | 288 | 49.7
+pv1 | reuniwatt | intraday | 5 | 2024-01-24 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-25 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-26 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-27 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-28 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-29 | 144 | 288 | 50
+pv1 | reuniwatt | intraday | 5 | 2024-01-30 | 144 | 288 | 50
+
+### reuniwatt_irradiance_missing_runs (12 of 695 rows)
+site | provider | horizon | granularity_min | cadence_min | last_run_before_gap | first_run_after_gap | approx_missing_runs
+pv2 | reuniwatt | intraday | 5 | 5 | 2026-02-18 17:25 | 2026-10-01 12:54 | 6.474e+04
+pv1 | reuniwatt | intraday | 15 | 15 | 2026-02-18 17:15 | 2026-09-21 17:50 | 2.064e+04
+pv2 | reuniwatt | intraday | 15 | 15 | 2026-02-18 17:15 | 2026-09-21 17:51 | 2.064e+04
+pv1 | reuniwatt | intraday | 5 | 720 | 2024-09-28 18:00 | 2026-02-18 11:30 | 1014
+pv1 | reuniwatt | intraday | 5 | 720 | 2026-02-18 17:25 | 2026-10-01 12:54 | 449
+pv1 | reuniwatt | dayahead | 5 | 15 | 2026-09-29 10:31 | 2026-10-01 12:54 | 201
+pv2 | reuniwatt | dayahead | 5 | 15 | 2026-09-29 10:31 | 2026-10-01 12:54 | 201
+pv1 | reuniwatt | dayahead | 5 | 15 | 2026-09-21 18:18 | 2026-09-22 06:45 | 49
+pv1 | reuniwatt | intraday | 15 | 15 | 2026-09-21 18:18 | 2026-09-22 06:45 | 49
+pv1 | reuniwatt | weekahead | 60 | 14.98 | 2026-09-21 18:18 | 2026-09-22 06:45 | 49
+pv2 | reuniwatt | dayahead | 5 | 15 | 2026-09-21 18:19 | 2026-09-22 06:45 | 49
+pv2 | reuniwatt | intraday | 15 | 15 | 2026-09-21 18:18 | 2026-09-22 06:45 | 49
+
+### reuniwatt_irradiance_null_rates (60 of 144 rows)
+period | rows | column | null_pct
+dayahead / day | 359880 | ambient_temp_c | 0
+dayahead / night | 369767 | ambient_temp_c | 0
+dayahead / twilight | 47377 | ambient_temp_c | 0
+intraday / day | 107257 | ambient_temp_c | 100
+intraday / night | 111353 | ambient_temp_c | 100
+intraday / twilight | 11924 | ambient_temp_c | 100
+weekahead / day | 2502132 | ambient_temp_c | 100
+weekahead / night | 2603702 | ambient_temp_c | 100
+weekahead / twilight | 333334 | ambient_temp_c | 100
+dayahead / day | 359880 | bhi_wm2 | 0
+dayahead / night | 369767 | bhi_wm2 | 0
+dayahead / twilight | 47377 | bhi_wm2 | 0
+intraday / day | 107257 | bhi_wm2 | 16.78
+intraday / night | 111353 | bhi_wm2 | 16.16
+intraday / twilight | 11924 | bhi_wm2 | 0
+weekahead / day | 2502132 | bhi_wm2 | 0
+weekahead / night | 2603702 | bhi_wm2 | 0
+weekahead / twilight | 333334 | bhi_wm2 | 0
+dayahead / day | 359880 | clearness_idx_pct | 0
+dayahead / night | 369767 | clearness_idx_pct | 0
+dayahead / twilight | 47377 | clearness_idx_pct | 0
+intraday / day | 107257 | clearness_idx_pct | 100
+intraday / night | 111353 | clearness_idx_pct | 100
+intraday / twilight | 11924 | clearness_idx_pct | 100
+weekahead / day | 2502132 | clearness_idx_pct | 100
+weekahead / night | 2603702 | clearness_idx_pct | 100
+weekahead / twilight | 333334 | clearness_idx_pct | 100
+dayahead / day | 359880 | cloud_opacity_pct | 0
+dayahead / night | 369767 | cloud_opacity_pct | 100
+dayahead / twilight | 47377 | cloud_opacity_pct | 48.31
+intraday / day | 107257 | cloud_opacity_pct | 100
+intraday / night | 111353 | cloud_opacity_pct | 100
+intraday / twilight | 11924 | cloud_opacity_pct | 100
+weekahead / day | 2502132 | cloud_opacity_pct | 100
+weekahead / night | 2603702 | cloud_opacity_pct | 100
+weekahead / twilight | 333334 | cloud_opacity_pct | 100
+dayahead / day | 359880 | dewpoint_c | 0
+dayahead / night | 369767 | dewpoint_c | 0
+dayahead / twilight | 47377 | dewpoint_c | 0
+intraday / day | 107257 | dewpoint_c | 100
+intraday / night | 111353 | dewpoint_c | 100
+intraday / twilight | 11924 | dewpoint_c | 100
+weekahead / day | 2502132 | dewpoint_c | 100
+weekahead / night | 2603702 | dewpoint_c | 100
+weekahead / twilight | 333334 | dewpoint_c | 100
+dayahead / day | 359880 | dhi_wm2 | 0
+dayahead / night | 369767 | dhi_wm2 | 0
+dayahead / twilight | 47377 | dhi_wm2 | 0
+intraday / day | 107257 | dhi_wm2 | 16.78
+intraday / night | 111353 | dhi_wm2 | 16.16
+intraday / twilight | 11924 | dhi_wm2 | 0
+weekahead / day | 2502132 | dhi_wm2 | 0
+weekahead / night | 2603702 | dhi_wm2 | 0
+weekahead / twilight | 333334 | dhi_wm2 | 0
+dayahead / day | 359880 | dni_wm2 | 0
+dayahead / night | 369767 | dni_wm2 | 0
+dayahead / twilight | 47377 | dni_wm2 | 0
+intraday / day | 107257 | dni_wm2 | 16.78
+intraday / night | 111353 | dni_wm2 | 16.16
+intraday / twilight | 11924 | dni_wm2 | 0
+
+### reuniwatt_irradiance_peak_hours (8 rows)
+site | peak_hour | looks_like | column
+pv1 | 8 | UTC | ghi_wm2
+pv2 | 8 | UTC | ghi_wm2
+pv1 | 12 | Asia/Dubai | gti_wm2
+pv2 | 9 | UTC | gti_wm2
+pv1 | 7 | UTC | gti_east_wm2
+pv2 | 11 | Asia/Dubai | gti_east_wm2
+pv1 | 8 | UTC | gti_west_wm2
+pv2 | 11 | Asia/Dubai | gti_west_wm2
+
+### reuniwatt_irradiance_rules (33 rows)
+rule | condition | violations | pct
+ghi_wm2_negative | ghi_wm2 < 0 | 0 | 0
+ghi_wm2_above_1400 | ghi_wm2 > 1400 | 0 | 0
+ghi_wm2_at_night | daypart = 'night' AND ghi_wm2 > 5 | 4577 | 0.071
+dni_wm2_negative | dni_wm2 < 0 | 0 | 0
+dni_wm2_above_1200 | dni_wm2 > 1200 | 0 | 0
+dni_wm2_at_night | daypart = 'night' AND dni_wm2 > 5 | 0 | 0
+dhi_wm2_negative | dhi_wm2 < 0 | 0 | 0
+dhi_wm2_above_800 | dhi_wm2 > 800 | 0 | 0
+dhi_wm2_at_night | daypart = 'night' AND dhi_wm2 > 5 | 4158 | 0.0645
+bhi_wm2_negative | bhi_wm2 < 0 | 0 | 0
+bhi_wm2_above_1200 | bhi_wm2 > 1200 | 0 | 0
+bhi_wm2_at_night | daypart = 'night' AND bhi_wm2 > 5 | 0 | 0
+gti_wm2_negative | gti_wm2 < 0 | 0 | 0
+gti_wm2_above_1500 | gti_wm2 > 1500 | 0 | 0
+gti_wm2_at_night | daypart = 'night' AND gti_wm2 > 5 | 945 | 0.0147
+gti_east_wm2_negative | gti_east_wm2 < 0 | 0 | 0
+gti_east_wm2_above_1500 | gti_east_wm2 > 1500 | 0 | 0
+gti_east_wm2_at_night | daypart = 'night' AND gti_east_wm2 > 5 | 3203 | 0.0497
+gti_west_wm2_negative | gti_west_wm2 < 0 | 0 | 0
+gti_west_wm2_above_1500 | gti_west_wm2 > 1500 | 0 | 0
+gti_west_wm2_at_night | daypart = 'night' AND gti_west_wm2 > 5 | 3203 | 0.0497
+ghi_above_extraterrestrial | daypart <> 'night' AND ghi_wm2 > etr_horizontal * 1.05 + 20 | 38793 | 0.6017
+ambient_temp_out_of_-5_60 | ambient_temp_c < -5 OR ambient_temp_c > 60 | 0 | 0
+dewpoint_out_of_-40_40 | dewpoint_c < -40 OR dewpoint_c > 40 | 0 | 0
+dewpoint_above_ambient_temp | dewpoint_c > ambient_temp_c + 0.5 | 0 | 0
+humidity_out_of_0_100 | humidity_pct < 0 OR humidity_pct > 100 | 0 | 0
+cloud_opacity_out_of_0_100 | cloud_opacity_pct < 0 OR cloud_opacity_pct > 100 | 0 | 0
+clearness_out_of_0_130 | clearness_idx_pct < 0 OR clearness_idx_pct > 130 | 0 | 0
+wind_speed_out_of_0_50 | wind_speed < 0 OR wind_speed > 50 | 0 | 0
+wind_dir_out_of_0_360 | wind_dir < 0 OR wind_dir > 360 | 0 | 0
+pressure_out_of_900_1100 | pressure_hpa < 900 OR pressure_hpa > 1100 | 0 | 0
+precip_out_of_0_200 | precip_rate_mmh < 0 OR precip_rate_mmh > 200 | 0 | 0
+lead_time_negative | lead_min < 0 | 0 | 0
+
+### reuniwatt_irradiance_run_completeness (12 rows)
+site | provider | horizon | granularity_min | expected_steps | runs | short_runs | long_runs | min_steps | short_pct | irregular_steps
+pv1 | reuniwatt | dayahead | 5 | 288 | 1349 | 0 | 0 | 288 | 0 | 0
+pv1 | reuniwatt | intraday | 5 | 72 | 1249 | 72 | 0 | 1 | 5.76 | 0
+pv1 | reuniwatt | intraday | 15 | 72 | 697 | 24 | 0 | 1 | 3.44 | 47783
+pv1 | reuniwatt | intraday | 60 | 1 | 7 | 0 | 0 | 1 | 0 | 0
+pv1 | reuniwatt | weekahead | 5 | 2016 | 677 | 0 | 0 | 2016 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 2016 | 672 | 0 | 0 | 2016 | 0 | 1354080
+pv2 | reuniwatt | dayahead | 5 | 288 | 1349 | 0 | 0 | 288 | 0 | 0
+pv2 | reuniwatt | intraday | 5 | 72 | 749 | 72 | 0 | 1 | 9.61 | 0
+pv2 | reuniwatt | intraday | 15 | 72 | 696 | 24 | 0 | 1 | 3.45 | 47712
+pv2 | reuniwatt | intraday | 60 | 1 | 7 | 0 | 0 | 1 | 0 | 0
+pv2 | reuniwatt | weekahead | 5 | 2016 | 677 | 0 | 0 | 2016 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 2016 | 672 | 0 | 0 | 2016 | 0 | 1354080
+
+### reuniwatt_irradiance_segments (12 rows)
+site | provider | horizon | granularity_min | rows | runs | first_issue | last_issue | first_period | last_period | last_ingested
+pv1 | reuniwatt | dayahead | 5 | 388512 | 1349 | 2026-09-21 17:50 | 2026-10-08 13:45 | 2026-09-21 17:55 | 2026-10-09 13:45 | 2026-10-08 13:48
+pv1 | reuniwatt | intraday | 5 | 84816 | 1249 | 2024-01-23 06:00 | 2026-10-08 13:45 | 2024-01-23 06:05 | 2026-10-08 19:45 | 2026-10-08 13:48
+pv1 | reuniwatt | intraday | 15 | 48480 | 697 | 2026-02-18 11:30 | 2026-09-29 10:30 | 2026-02-18 11:30 | 2026-09-29 16:30 | 2026-09-29 10:59
+pv1 | reuniwatt | intraday | 60 | 7 | 7 | 2026-02-18 11:00 | 2026-02-18 17:00 | 2026-02-18 11:00 | 2026-02-18 17:00 | 2026-09-29 10:59
+pv1 | reuniwatt | weekahead | 5 | 1364832 | 677 | 2026-10-01 12:54 | 2026-10-08 13:45 | 2026-10-01 12:55 | 2026-10-15 13:45 | 2026-10-08 13:48
+pv1 | reuniwatt | weekahead | 60 | 1354752 | 672 | 2026-09-21 17:51 | 2026-09-29 10:31 | 2026-09-21 17:55 | 2026-10-06 10:30 | 2026-09-29 10:59
+pv2 | reuniwatt | dayahead | 5 | 388512 | 1349 | 2026-09-21 17:51 | 2026-10-08 13:46 | 2026-09-21 17:55 | 2026-10-09 13:45 | 2026-10-08 13:48
+pv2 | reuniwatt | intraday | 5 | 48816 | 749 | 2026-02-18 11:30 | 2026-10-08 13:46 | 2026-02-18 11:30 | 2026-10-08 19:45 | 2026-10-08 13:48
+pv2 | reuniwatt | intraday | 15 | 48408 | 696 | 2026-02-18 11:30 | 2026-09-29 10:31 | 2026-02-18 11:30 | 2026-09-29 16:30 | 2026-09-29 10:59
+pv2 | reuniwatt | intraday | 60 | 7 | 7 | 2026-02-18 11:00 | 2026-02-18 17:00 | 2026-02-18 11:00 | 2026-02-18 17:00 | 2026-09-29 10:59
+pv2 | reuniwatt | weekahead | 5 | 1364832 | 677 | 2026-10-01 12:54 | 2026-10-08 13:46 | 2026-10-01 12:55 | 2026-10-15 13:45 | 2026-10-08 13:48
+pv2 | reuniwatt | weekahead | 60 | 1354752 | 672 | 2026-09-21 17:51 | 2026-09-29 10:31 | 2026-09-21 17:55 | 2026-10-06 10:30 | 2026-09-29 10:59
+
+### reuniwatt_irradiance_site_mapping (2 rows)
+site | solcast_site | avg_corr
+pv1 | PV1 | 
+pv1 | PV2 | 
+
+### reuniwatt_irradiance_sources (4 rows)
+_source | rows | first_issue | last_issue | horizons
+api_incremental | 3216816 | 2026-10-01 12:54 | 2026-10-08 13:46 | [weekahead, intraday, dayahead]
+migration_new_pipeline | 3193704 | 2026-09-21 17:50 | 2026-09-29 10:31 | [weekahead, dayahead, intraday]
+migration_legacy | 206 | 2026-02-18 11:00 | 2026-02-18 17:25 | [intraday]
+api_historical_backfill | 36000 | 2024-01-23 06:00 | 2024-09-28 18:00 | [intraday]
+
+### reuniwatt_irradiance_stale_runs (10 rows)
+site | provider | horizon | granularity_min | runs_compared | stale_runs | stale_pct
+pv1 | reuniwatt | dayahead | 5 | 1348 | 612 | 45.4
+pv1 | reuniwatt | intraday | 5 | 500 | 175 | 35
+pv1 | reuniwatt | intraday | 15 | 493 | 164 | 33.27
+pv1 | reuniwatt | weekahead | 5 | 677 | 326 | 48.15
+pv1 | reuniwatt | weekahead | 60 | 671 | 318 | 47.39
+pv2 | reuniwatt | dayahead | 5 | 1348 | 572 | 42.43
+pv2 | reuniwatt | intraday | 5 | 502 | 187 | 37.25
+pv2 | reuniwatt | intraday | 15 | 494 | 193 | 39.07
+pv2 | reuniwatt | weekahead | 5 | 677 | 307 | 45.35
+pv2 | reuniwatt | weekahead | 60 | 671 | 300 | 44.71
+
+### reuniwatt_irradiance_timezone_test (2 rows)
+assumed_tz | night_rows_with_ghi | median_abs_bhi_vs_dni_cosz | median_abs_clearness_diff
+UTC | 4577 | 6.565 | 70.25
+Asia/Dubai | 1009934 | 211.8 | 65.16
+
+### reuniwatt_irradiance_vs_solcast (19 rows)
+site | provider | horizon | granularity_min | reuniwatt_col | solcast_col | n | corr | bias | mae | solcast_site
+pv1 | reuniwatt | intraday | 5 | ambient_temp_c | air_temp | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | ambient_temp_c | air_temp | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | cloud_opacity_pct | cloud_opacity | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | cloud_opacity_pct | cloud_opacity | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | dewpoint_c | dewpoint_temp | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | dewpoint_c | dewpoint_temp | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | dhi_wm2 | dhi | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | dhi_wm2 | dhi | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | dni_wm2 | dni | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | dni_wm2 | dni | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | ghi_wm2 | ghi | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | ghi_wm2 | ghi | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | gti_wm2 | gti | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | gti_wm2 | gti | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | humidity_pct | relative_humidity | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | precip_rate_mmh | precipitation_rate | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | precip_rate_mmh | precipitation_rate | 0 |  |  |  | PV2
+pv1 | reuniwatt | intraday | 5 | wind_speed | wind_speed_10m | 0 |  |  |  | PV1
+pv1 | reuniwatt | intraday | 5 | wind_speed | wind_speed_10m | 0 |  |  |  | PV2
+
+### reuniwatt_power_notes (5 rows)
+  missing_columns: []
+  unexpected_columns: []
+  duplicate_keys: 0 (conflicting: 0)
+  timestamps_tz_used: UTC
+  pv_shift_h_used: -4
+
+### reuniwatt_power_accuracy_vs_pv (12 of 56 rows)
+site | provider | horizon | granularity_min | forecast_day_offset | n | corr | bias_mw | mae | mae_original | band_coverage_pct | pv_col | nmae_pct
+pv1 | reuniwatt | dayahead | 5 |  | 2571 | -0.0681 | -833.9 | 833.9 | 833.9 | 0 | PV2_MW | 50.67
+pv1 | reuniwatt | dayahead | 5 | 0 | 60579 | 0.9428 | -1136 | 1136 | 1136 | 0 | PV2_MW | 69.01
+pv1 | reuniwatt | dayahead | 5 | 1 | 116262 | 0.9428 | -1142 | 1142 | 1142 | 0 | PV2_MW | 69.36
+pv1 | reuniwatt | dayahead | 15 |  | 860 | -0.0387 | -836.3 | 836.3 | 836.3 | 0 | PV2_MW | 50.9
+pv1 | reuniwatt | dayahead | 60 |  | 3030 | 0.1205 | -520.4 | 520.4 | 520.4 | 0 | PV2_MW | 31.7
+pv1 | reuniwatt | intraday | 5 |  | 1209 | 0.2596 | -401.4 | 401.4 | 401.4 | 0 | PV2_MW | 24.39
+pv1 | reuniwatt | intraday | 5 | 0 | 20476 | 0.947 | -1163 | 1163 | 1163 | 0 | PV2_MW | 70.66
+pv1 | reuniwatt | intraday | 5 | 1 | 1729 | 0.9806 | -598.5 | 598.5 | 598.5 | 0 | PV2_MW | 36.36
+pv1 | reuniwatt | intraday | 15 |  | 410 | 0.2945 | -409.4 | 409.4 | 409.4 | 0 | PV2_MW | 24.92
+pv1 | reuniwatt | intraday | 15 | 0 | 6845 | 0.9427 | -1200 | 1200 | 1200 | 0 | PV2_MW | 73.05
+pv1 | reuniwatt | intraday | 15 | 1 | 637 | 0.9875 | -596 | 596 | 596 | 0 | PV2_MW | 36.27
+pv1 | reuniwatt | intraday | 60 |  | 108 | 0.4877 | -414.4 | 414.4 | 414.4 | 0 | PV2_MW | 25.24
+
+### reuniwatt_power_adjustments (3 rows)
+horizon | quality_flag | rows | rows_adjusted | mean_diff_mw | max_abs_diff_mw | median_ratio | original_null_only | adjusted_null_only | adjusted_pct
+dayahead | valid | 806544 | 0 | 0 | 0 | 1 | 0 | 0 | 0
+intraday | valid | 203332 | 0 | 0 | 0 | 1 | 0 | 0 | 0
+weekahead | valid | 5451264 | 0 | 0 | 0 | 1 | 0 | 0 | 0
+
+### reuniwatt_power_backup_compare (1 rows)
+rows_main | rows_backup | keys_only_in_main | keys_only_in_backup
+6456388 | 73027440 | 3234820 | 0
+
+### reuniwatt_power_backup_snapshots (12 of 678 rows)
+_backup_run_id | backup_at | rows | latest_issue_in_snapshot
+5b9a5979-f0d | 2026-10-01 13:02 | 4752 | 2026-10-01 12:54
+f68ffc35-fdf | 2026-10-01 13:17 | 9504 | 2026-10-01 13:01
+435ec6a9-792 | 2026-10-01 13:32 | 14256 | 2026-10-01 13:16
+759618b3-bba | 2026-10-01 13:46 | 19008 | 2026-10-01 13:31
+6c4d1e19-e61 | 2026-10-01 14:01 | 23760 | 2026-10-01 13:46
+8a3dbb7f-eff | 2026-10-01 14:17 | 28512 | 2026-10-01 14:01
+3917e792-2f4 | 2026-10-01 14:32 | 33264 | 2026-10-01 14:16
+cf6d632f-f44 | 2026-10-01 14:47 | 38016 | 2026-10-01 14:31
+62ff0b0d-d81 | 2026-10-01 15:02 | 42768 | 2026-10-01 14:46
+dc35f4ca-a6c | 2026-10-01 15:17 | 47520 | 2026-10-01 15:01
+329dd0cf-531 | 2026-10-01 15:31 | 52272 | 2026-10-01 15:16
+c411b969-87d | 2026-10-01 15:47 | 57024 | 2026-10-01 15:31
+
+### reuniwatt_power_band_width (13 rows)
+site | horizon | forecast_day_offset | rows | median_width_mw | median_width_rel_to_point | distinct_widths
+pv2 | dayahead | 0 | 42743 | 0.1 | 0.066 | 156
+pv2 | dayahead | 1 | 84800 | 0.07 | 0.048 | 28
+pv2 | intraday |  | 36 | 0.09 | 0.072 | 5
+pv2 | intraday | 0 | 30491 | 0.1 | 0.071 | 156
+pv2 | intraday | 1 | 889 | 0.12 | 0.09 | 17
+pv2 | weekahead | 0 | 42744 | 0.09 | 0.066 | 156
+pv2 | weekahead | 1 | 127453 | 0.07 | 0.047 | 31
+pv2 | weekahead | 2 | 126741 | 0.08 | 0.053 | 38
+pv2 | weekahead | 3 | 126574 | 0.09 | 0.057 | 44
+pv2 | weekahead | 4 | 124133 | 0.03 | 0.021 | 44
+pv2 | weekahead | 5 | 121529 | 0 | 0 | 1
+pv2 | weekahead | 6 | 118936 | 0 | 0 | 17
+pv2 | weekahead | 7 | 77868 | 0 | 0 | 16
+
+### reuniwatt_power_cadence (16 rows)
+site | provider | horizon | granularity_min | cadence_min | gaps | approx_missing_runs
+pv1 | reuniwatt | dayahead | 5 | 5 | 1350 | 8.234e+04
+pv1 | reuniwatt | dayahead | 15 | 15 | 1 | 1.171e+04
+pv1 | reuniwatt | dayahead | 60 | 60 | 11 | 3216
+pv1 | reuniwatt | intraday | 5 | 5 | 680 | 8.575e+04
+pv1 | reuniwatt | intraday | 15 | 15 | 5 | 2.726e+04
+pv1 | reuniwatt | intraday | 60 | 60 | 2 | 3172
+pv1 | reuniwatt | weekahead | 5 | 15 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 14.98 | 2 | 69
+pv2 | reuniwatt | dayahead | 5 | 5 | 1350 | 8.234e+04
+pv2 | reuniwatt | dayahead | 15 | 15 | 1 | 1.171e+04
+pv2 | reuniwatt | dayahead | 60 | 60 | 11 | 3216
+pv2 | reuniwatt | intraday | 5 | 5 | 680 | 8.575e+04
+pv2 | reuniwatt | intraday | 15 | 15 | 5 | 2.726e+04
+pv2 | reuniwatt | intraday | 60 | 60 | 2 | 3172
+pv2 | reuniwatt | weekahead | 5 | 14.97 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 14.97 | 2 | 69
+
+### reuniwatt_power_capacity_hint (2 rows)
+site | power_mw_p999 | power_p10_mw_p999 | power_p90_mw_p999 | power_mw_original_p999 | power_mw_max | power_p10_mw_max | power_p90_mw_max | power_mw_original_max
+pv1 | 0.8388 | 0.8166 | 0.905 | 0.8388 | 0.8582 | 0.8449 | 0.905 | 0.8582
+pv2 | 1.595 | 1.569 | 1.643 | 1.595 | 1.63 | 1.609 | 1.643 | 1.63
+
+### reuniwatt_power_column_stats (4 rows)
+column | rows | nulls | zeros | min | p01_p50_p99_p999 | max
+power_mw | 6461140 | 0 | 3338887 | 0 | [0, 0, 1.567, 1.588] | 1.63
+power_p10_mw | 6461140 | 0 | 3309619 | 0 | [0, 0, 1.533, 1.565] | 1.609
+power_p90_mw | 6461140 | 0 | 3309622 | 0 | [0, 0, 1.627, 1.643] | 1.643
+power_mw_original | 6461140 | 0 | 3338887 | 0 | [0, 0, 1.567, 1.588] | 1.63
+
+### reuniwatt_power_coverage (16 rows)
+site | provider | horizon | granularity_min | first_period | last_period | periods | expected_periods | coverage_pct
+pv1 | reuniwatt | dayahead | 5 | 2025-12-02 00:00 | 2026-10-09 14:15 | 10585 | 89740 | 11.8
+pv1 | reuniwatt | dayahead | 15 | 2025-12-02 00:00 | 2026-04-22 23:45 | 1920 | 13632 | 14.08
+pv1 | reuniwatt | dayahead | 60 | 2025-03-26 00:00 | 2026-04-22 23:00 | 6216 | 9432 | 65.9
+pv1 | reuniwatt | intraday | 5 | 2025-12-02 00:00 | 2026-10-08 20:15 | 5129 | 89524 | 5.73
+pv1 | reuniwatt | intraday | 15 | 2025-12-02 00:00 | 2026-09-29 16:30 | 3218 | 28963 | 11.11
+pv1 | reuniwatt | intraday | 60 | 2025-12-01 00:00 | 2026-04-22 17:00 | 254 | 3426 | 7.41
+pv1 | reuniwatt | weekahead | 5 | 2026-10-01 12:55 | 2026-10-15 14:15 | 4049 | 4049 | 100
+pv1 | reuniwatt | weekahead | 60 | 2026-09-21 17:55 | 2026-10-06 10:30 | 4232 | 353 | 1199
+pv2 | reuniwatt | dayahead | 5 | 2025-12-02 00:00 | 2026-10-09 14:15 | 10585 | 89740 | 11.8
+pv2 | reuniwatt | dayahead | 15 | 2025-12-02 00:00 | 2026-04-22 23:45 | 1920 | 13632 | 14.08
+pv2 | reuniwatt | dayahead | 60 | 2025-03-26 00:00 | 2026-04-22 23:00 | 6216 | 9432 | 65.9
+pv2 | reuniwatt | intraday | 5 | 2025-12-02 00:00 | 2026-10-08 20:15 | 5129 | 89524 | 5.73
+pv2 | reuniwatt | intraday | 15 | 2025-12-02 00:00 | 2026-09-29 16:30 | 3218 | 28963 | 11.11
+pv2 | reuniwatt | intraday | 60 | 2025-12-01 00:00 | 2026-04-22 17:00 | 254 | 3426 | 7.41
+pv2 | reuniwatt | weekahead | 5 | 2026-10-01 12:55 | 2026-10-15 14:15 | 4049 | 4049 | 100
+pv2 | reuniwatt | weekahead | 60 | 2026-09-21 17:55 | 2026-10-06 10:30 | 4232 | 353 | 1199
+
+### reuniwatt_power_day_offset_dist (14 rows)
+horizon | forecast_day_offset | rows
+dayahead |  | 27792
+dayahead | 0 | 386383
+dayahead | 1 | 391793
+intraday |  | 8572
+intraday | 0 | 170748
+intraday | 1 | 23868
+weekahead | 0 | 386380
+weekahead | 1 | 778176
+weekahead | 2 | 778176
+weekahead | 3 | 778176
+weekahead | 4 | 778176
+weekahead | 5 | 778176
+weekahead | 6 | 778176
+weekahead | 7 | 391796
+
+### reuniwatt_power_day_offset_mismatch (3 rows)
+horizon | rows | mismatched | null_offset
+dayahead | 805968 | 0 | 27792
+intraday | 203188 | 0 | 8572
+weekahead | 5447232 | 0 | 0
+
+### reuniwatt_power_history (12 of 30 rows)
+version | timestamp | operation | operationParameters
+1303 | 2026-10-08 14:18 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1302 | 2026-10-08 14:18 | MERGE | {predicate=["((((period_end#46894424 = period_end#46875276) AND (site#46894425 = site#46875284)) AND (provider#46894426 = provider#46875281)) AND (((horizon#46894427 = horizon#46875275) AND (reference_time#46894, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#46875285 > _ingested_at#46894437)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1301 | 2026-10-08 14:03 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1300 | 2026-10-08 14:03 | MERGE | {predicate=["((((period_end#46227675 = period_end#46127260) AND (site#46227676 = site#46127268)) AND (provider#46227677 = provider#46127265)) AND (((horizon#46227678 = horizon#46127259) AND (reference_time#46227, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#46127269 > _ingested_at#46227688)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1299 | 2026-10-08 13:48 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1298 | 2026-10-08 13:48 | MERGE | {predicate=["((((period_end#45659633 = period_end#45629450) AND (site#45659634 = site#45629458)) AND (provider#45659635 = provider#45629455)) AND (((horizon#45659636 = horizon#45629449) AND (reference_time#45659, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#45629459 > _ingested_at#45659646)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1297 | 2026-10-08 13:33 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1296 | 2026-10-08 13:33 | MERGE | {predicate=["((((period_end#45033526 = period_end#45014711) AND (site#45033527 = site#45014719)) AND (provider#45033528 = provider#45014716)) AND (((horizon#45033529 = horizon#45014710) AND (reference_time#45033, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#45014720 > _ingested_at#45033539)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1295 | 2026-10-08 13:18 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1294 | 2026-10-08 13:18 | MERGE | {predicate=["((((period_end#44478194 = period_end#44383340) AND (site#44478195 = site#44383348)) AND (provider#44478196 = provider#44383345)) AND (((horizon#44478197 = horizon#44383339) AND (reference_time#44478, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#44383353 > _ingested_at#44478207)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+1293 | 2026-10-08 13:03 | OPTIMIZE | {clusterBy=[], zOrderBy=[], batchId=0, predicate=[], auto=true}
+1292 | 2026-10-08 13:03 | MERGE | {predicate=["((((period_end#43778512 = period_end#43767085) AND (site#43778513 = site#43767093)) AND (provider#43778514 = provider#43767090)) AND (((horizon#43778515 = horizon#43767084) AND (reference_time#43778, clusterBy=[], matchedPredicates=[{"predicate":"(_ingested_at#43767094 > _ingested_at#43778525)","actionType":"update"}], statsOnLoad=false, notMatchedBySourcePredicates=[], notMatchedPredicates=[{"actionType":"insert"}]}
+
+### reuniwatt_power_ingestion (16 rows)
+site | provider | horizon | granularity_min | min_ingest_lag_min | median_ingest_lag_min | max_ingest_lag_min | rows_ingested_before_issue | distinct_ingest_times
+pv1 | reuniwatt | dayahead | 5 | 2.517 | 349.9 | 4.341e+05 | 0 | 655
+pv1 | reuniwatt | dayahead | 15 | 2.296e+05 | 2.44e+05 | 4.341e+05 | 0 | 1
+pv1 | reuniwatt | dayahead | 60 | 2.297e+05 | 5.946e+05 | 7.955e+05 | 0 | 1
+pv1 | reuniwatt | intraday | 5 | 2.683 | 347.7 | 4.341e+05 | 0 | 656
+pv1 | reuniwatt | intraday | 15 | 17.4 | 5448 | 4.341e+05 | 0 | 1
+pv1 | reuniwatt | intraday | 60 | 2.3e+05 | 4.279e+05 | 4.355e+05 | 0 | 1
+pv1 | reuniwatt | weekahead | 5 | 2.283 | 347.3 | 361.7 | 0 | 650
+pv1 | reuniwatt | weekahead | 60 | 16.9 | 5342 | 1.11e+04 | 0 | 1
+pv2 | reuniwatt | dayahead | 5 | 1.633 | 360.9 | 4.341e+05 | 0 | 634
+pv2 | reuniwatt | dayahead | 15 | 2.296e+05 | 2.44e+05 | 4.341e+05 | 0 | 1
+pv2 | reuniwatt | dayahead | 60 | 2.297e+05 | 5.946e+05 | 7.955e+05 | 0 | 1
+pv2 | reuniwatt | intraday | 5 | 1.95 | 347.2 | 4.341e+05 | 0 | 642
+pv2 | reuniwatt | intraday | 15 | 16.77 | 5447 | 4.341e+05 | 0 | 1
+pv2 | reuniwatt | intraday | 60 | 2.3e+05 | 4.279e+05 | 4.355e+05 | 0 | 1
+pv2 | reuniwatt | weekahead | 5 | 1.5 | 346.8 | 364.1 | 0 | 615
+pv2 | reuniwatt | weekahead | 60 | 16.47 | 5342 | 1.11e+04 | 0 | 1
+
+### reuniwatt_power_key_nulls (6 rows)
+rule | condition | violations | pct
+null_site | site IS NULL | 0 | 0
+null_provider | provider IS NULL | 0 | 0
+null_horizon | horizon IS NULL | 0 | 0
+null_granularity_min | granularity_min IS NULL | 0 | 0
+null_reference_time | reference_time IS NULL | 0 | 0
+null_period_end | period_end IS NULL | 0 | 0
+
+### reuniwatt_power_lag_best (4 rows)
+site | pv_col | offset_h | corr
+pv1 | PV1_MW | 4 | 0.02276
+pv1 | PV2_MW | 4 | 0.456
+pv2 | PV1_MW | 4 | 0.01758
+pv2 | PV2_MW | 4 | 0.4569
+
+### reuniwatt_power_lag_scan_vs_pv (12 of 52 rows)
+site | pv_col | offset_h | corr
+pv1 | PV1_MW | -6 | -0.1258
+pv1 | PV1_MW | -5 | -0.122
+pv1 | PV1_MW | -4 | -0.1139
+pv1 | PV1_MW | -3 | -0.1005
+pv1 | PV1_MW | -2 | -0.08196
+pv1 | PV1_MW | -1 | -0.06003
+pv1 | PV1_MW | 0 | -0.03642
+pv1 | PV1_MW | 1 | -0.01326
+pv1 | PV1_MW | 2 | 0.006533
+pv1 | PV1_MW | 3 | 0.01955
+pv1 | PV1_MW | 4 | 0.02276
+pv1 | PV1_MW | 5 | 0.01497
+
+### reuniwatt_power_lead_time (16 rows)
+site | provider | horizon | granularity_min | min_lead_min | median_lead_min | max_lead_min | max_lead_days | rows_lead_le_0 | rows_lead_lt_0
+pv1 | reuniwatt | dayahead | 5 | 0 | 709.5 | 1440 | 1 | 5760 | 0
+pv1 | reuniwatt | dayahead | 15 | 0 | 0 | 0 | 0 | 1920 | 0
+pv1 | reuniwatt | dayahead | 60 | 0 | 0 | 0 | 0 | 6216 | 0
+pv1 | reuniwatt | intraday | 5 | 0 | 169.7 | 359.7 | 0.25 | 3024 | 0
+pv1 | reuniwatt | intraday | 15 | 0 | 179.6 | 359.8 | 0.25 | 1008 | 0
+pv1 | reuniwatt | intraday | 60 | 0 | 0 | 0 | 0 | 254 | 0
+pv1 | reuniwatt | weekahead | 5 | 0.4 | 5044 | 1.008e+04 | 7 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 0.5333 | 5044 | 1.008e+04 | 7 | 0 | 0
+pv2 | reuniwatt | dayahead | 5 | 0 | 709.2 | 1439 | 1 | 5760 | 0
+pv2 | reuniwatt | dayahead | 15 | 0 | 0 | 0 | 0 | 1920 | 0
+pv2 | reuniwatt | dayahead | 60 | 0 | 0 | 0 | 0 | 6216 | 0
+pv2 | reuniwatt | intraday | 5 | 0 | 169.2 | 359.4 | 0.25 | 3024 | 0
+pv2 | reuniwatt | intraday | 15 | 0 | 179.1 | 359.4 | 0.25 | 1008 | 0
+pv2 | reuniwatt | intraday | 60 | 0 | 0 | 0 | 0 | 254 | 0
+pv2 | reuniwatt | weekahead | 5 | 0.03333 | 5043 | 1.008e+04 | 7 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 0.1667 | 5043 | 1.008e+04 | 7 | 0 | 0
+
+### reuniwatt_power_low_coverage_days (12 of 30 rows)
+site | provider | horizon | granularity_min | date | periods | expected | pct
+pv1 | reuniwatt | dayahead | 5 | 2026-09-21 | 73 | 288 | 25.3
+pv1 | reuniwatt | dayahead | 5 | 2026-09-30 | 127 | 288 | 44.1
+pv1 | reuniwatt | dayahead | 5 | 2026-10-01 | 133 | 288 | 46.2
+pv1 | reuniwatt | dayahead | 5 | 2026-10-09 | 172 | 288 | 59.7
+pv1 | reuniwatt | intraday | 5 | 2026-02-18 | 72 | 288 | 25
+pv1 | reuniwatt | intraday | 5 | 2026-04-22 | 72 | 288 | 25
+pv1 | reuniwatt | intraday | 5 | 2026-10-01 | 133 | 288 | 46.2
+pv1 | reuniwatt | intraday | 5 | 2026-10-08 | 244 | 288 | 84.7
+pv1 | reuniwatt | intraday | 15 | 2026-02-18 | 24 | 96 | 25
+pv1 | reuniwatt | intraday | 15 | 2026-04-22 | 24 | 96 | 25
+pv1 | reuniwatt | intraday | 15 | 2026-09-21 | 73 | 96 | 76
+pv1 | reuniwatt | intraday | 60 | 2026-02-18 | 7 | 24 | 29.2
+
+### reuniwatt_power_missing_runs (12 of 4102 rows)
+site | provider | horizon | granularity_min | cadence_min | last_run_before_gap | first_run_after_gap | approx_missing_runs
+pv1 | reuniwatt | intraday | 5 | 5 | 2026-04-22 17:25 | 2026-10-01 12:54 | 4.66e+04
+pv2 | reuniwatt | intraday | 5 | 5 | 2026-04-22 17:25 | 2026-10-01 12:54 | 4.66e+04
+pv1 | reuniwatt | dayahead | 5 | 5 | 2026-04-22 23:55 | 2026-09-21 17:50 | 4.37e+04
+pv2 | reuniwatt | dayahead | 5 | 5 | 2026-04-22 23:55 | 2026-09-21 17:51 | 4.37e+04
+pv1 | reuniwatt | dayahead | 5 | 5 | 2025-12-11 23:55 | 2026-04-13 00:00 | 3.514e+04
+pv2 | reuniwatt | dayahead | 5 | 5 | 2025-12-11 23:55 | 2026-04-13 00:00 | 3.514e+04
+pv1 | reuniwatt | intraday | 5 | 5 | 2025-12-11 23:55 | 2026-02-18 11:30 | 1.972e+04
+pv2 | reuniwatt | intraday | 5 | 5 | 2025-12-11 23:55 | 2026-02-18 11:30 | 1.972e+04
+pv1 | reuniwatt | intraday | 5 | 5 | 2026-02-18 17:25 | 2026-04-22 11:30 | 1.807e+04
+pv2 | reuniwatt | intraday | 5 | 5 | 2026-02-18 17:25 | 2026-04-22 11:30 | 1.807e+04
+pv1 | reuniwatt | intraday | 15 | 15 | 2026-04-22 17:15 | 2026-09-21 17:50 | 1.459e+04
+pv2 | reuniwatt | intraday | 15 | 15 | 2026-04-22 17:15 | 2026-09-21 17:51 | 1.459e+04
+
+### reuniwatt_power_null_rates (45 rows)
+period | rows | column | null_pct
+dayahead / day | 373380 | power_mw | 0
+dayahead / night | 383349 | power_mw | 0
+dayahead / twilight | 49239 | power_mw | 0
+intraday / day | 92673 | power_mw | 0
+intraday / night | 97991 | power_mw | 0
+intraday / twilight | 12524 | power_mw | 0
+weekahead / day | 2505772 | power_mw | 0
+weekahead / night | 2607630 | power_mw | 0
+weekahead / twilight | 333830 | power_mw | 0
+dayahead / day | 373380 | power_mw_original | 0
+dayahead / night | 383349 | power_mw_original | 0
+dayahead / twilight | 49239 | power_mw_original | 0
+intraday / day | 92673 | power_mw_original | 0
+intraday / night | 97991 | power_mw_original | 0
+intraday / twilight | 12524 | power_mw_original | 0
+weekahead / day | 2505772 | power_mw_original | 0
+weekahead / night | 2607630 | power_mw_original | 0
+weekahead / twilight | 333830 | power_mw_original | 0
+dayahead / day | 373380 | power_p10_mw | 0
+dayahead / night | 383349 | power_p10_mw | 0
+dayahead / twilight | 49239 | power_p10_mw | 0
+intraday / day | 92673 | power_p10_mw | 0
+intraday / night | 97991 | power_p10_mw | 0
+intraday / twilight | 12524 | power_p10_mw | 0
+weekahead / day | 2505772 | power_p10_mw | 0
+weekahead / night | 2607630 | power_p10_mw | 0
+weekahead / twilight | 333830 | power_p10_mw | 0
+dayahead / day | 373380 | power_p90_mw | 0
+dayahead / night | 383349 | power_p90_mw | 0
+dayahead / twilight | 49239 | power_p90_mw | 0
+intraday / day | 92673 | power_p90_mw | 0
+intraday / night | 97991 | power_p90_mw | 0
+intraday / twilight | 12524 | power_p90_mw | 0
+weekahead / day | 2505772 | power_p90_mw | 0
+weekahead / night | 2607630 | power_p90_mw | 0
+weekahead / twilight | 333830 | power_p90_mw | 0
+dayahead / day | 373380 | quality_flag | 0
+dayahead / night | 383349 | quality_flag | 0
+dayahead / twilight | 49239 | quality_flag | 0
+intraday / day | 92673 | quality_flag | 0
+intraday / night | 97991 | quality_flag | 0
+intraday / twilight | 12524 | quality_flag | 0
+weekahead / day | 2505772 | quality_flag | 0
+weekahead / night | 2607630 | quality_flag | 0
+weekahead / twilight | 333830 | quality_flag | 0
+
+### reuniwatt_power_peak_hours (2 rows)
+site | peak_hour | looks_like
+pv1 | 8 | UTC
+pv2 | 9 | UTC
+
+### reuniwatt_power_quality_flags (3 rows)
+horizon | quality_flag | rows | pct_of_horizon
+dayahead | valid | 805968 | 100
+intraday | valid | 203188 | 100
+weekahead | valid | 5447232 | 100
+
+### reuniwatt_power_rules (18 rows)
+rule | condition | violations | pct
+power_mw_negative | power_mw < 0 | 0 | 0
+power_mw_above_1700MW | power_mw > 1700 | 0 | 0
+power_mw_at_night | daypart = 'night' AND power_mw > 1.0 | 0 | 0
+power_p10_mw_negative | power_p10_mw < 0 | 0 | 0
+power_p10_mw_above_1700MW | power_p10_mw > 1700 | 0 | 0
+power_p10_mw_at_night | daypart = 'night' AND power_p10_mw > 1.0 | 0 | 0
+power_p90_mw_negative | power_p90_mw < 0 | 0 | 0
+power_p90_mw_above_1700MW | power_p90_mw > 1700 | 0 | 0
+power_p90_mw_at_night | daypart = 'night' AND power_p90_mw > 1.0 | 0 | 0
+power_mw_original_negative | power_mw_original < 0 | 0 | 0
+power_mw_original_above_1700MW | power_mw_original > 1700 | 0 | 0
+power_mw_original_at_night | daypart = 'night' AND power_mw_original > 1.0 | 0 | 0
+p10_above_point | power_p10_mw > power_mw + 0.001 | 24924 | 0.3858
+point_above_p90 | power_mw > power_p90_mw + 0.001 | 105714 | 1.636
+p10_above_p90 | power_p10_mw > power_p90_mw + 0.001 | 15 | 0.0002
+zero_width_band_daytime | daypart = 'day' AND power_mw > 1.0 AND power_p90_mw = power_p10_mw | 275942 | 4.271
+band_null_but_point_present | power_mw IS NOT NULL AND (power_p10_mw IS NULL OR power_p90_mw IS NULL) | 0 | 0
+lead_time_negative | lead_min < 0 | 0 | 0
+
+### reuniwatt_power_run_completeness (16 rows)
+site | provider | horizon | granularity_min | expected_steps | runs | short_runs | long_runs | min_steps | short_pct | irregular_steps
+pv1 | reuniwatt | dayahead | 5 | 1 | 7111 | 0 | 1351 | 1 | 0 | 0
+pv1 | reuniwatt | dayahead | 15 | 1 | 1920 | 0 | 0 | 1 | 0 | 0
+pv1 | reuniwatt | dayahead | 60 | 1 | 6216 | 0 | 0 | 1 | 0 | 0
+pv1 | reuniwatt | intraday | 5 | 1 | 3703 | 0 | 679 | 1 | 0 | 0
+pv1 | reuniwatt | intraday | 15 | 1 | 1681 | 0 | 673 | 1 | 0 | 47783
+pv1 | reuniwatt | intraday | 60 | 1 | 254 | 0 | 0 | 1 | 0 | 0
+pv1 | reuniwatt | weekahead | 5 | 2016 | 679 | 0 | 0 | 2016 | 0 | 0
+pv1 | reuniwatt | weekahead | 60 | 2016 | 672 | 0 | 0 | 2016 | 0 | 1354080
+pv2 | reuniwatt | dayahead | 5 | 1 | 7111 | 0 | 1351 | 1 | 0 | 0
+pv2 | reuniwatt | dayahead | 15 | 1 | 1920 | 0 | 0 | 1 | 0 | 0
+pv2 | reuniwatt | dayahead | 60 | 1 | 6216 | 0 | 0 | 1 | 0 | 0
+pv2 | reuniwatt | intraday | 5 | 1 | 3703 | 0 | 679 | 1 | 0 | 0
+pv2 | reuniwatt | intraday | 15 | 1 | 1680 | 0 | 672 | 1 | 0 | 47712
+pv2 | reuniwatt | intraday | 60 | 1 | 254 | 0 | 0 | 1 | 0 | 0
+pv2 | reuniwatt | weekahead | 5 | 2016 | 679 | 0 | 0 | 2016 | 0 | 0
+pv2 | reuniwatt | weekahead | 60 | 2016 | 672 | 0 | 0 | 2016 | 0 | 1354080
+
+### reuniwatt_power_run_overlap_with_irradiance (12 rows)
+site | provider | horizon | granularity_min | runs_only_in_power | runs_only_in_irradiance
+pv1 | reuniwatt | dayahead | 5 | 5760 | 0
+pv1 | reuniwatt | dayahead | 15 | 1920 | 0
+pv1 | reuniwatt | dayahead | 60 | 6216 | 0
+pv1 | reuniwatt | intraday | 5 | 2952 | 500
+pv1 | reuniwatt | intraday | 15 | 984 | 0
+pv1 | reuniwatt | intraday | 60 | 247 | 0
+pv2 | reuniwatt | dayahead | 5 | 5760 | 0
+pv2 | reuniwatt | dayahead | 15 | 1920 | 0
+pv2 | reuniwatt | dayahead | 60 | 6216 | 0
+pv2 | reuniwatt | intraday | 5 | 2952 | 0
+pv2 | reuniwatt | intraday | 15 | 984 | 0
+pv2 | reuniwatt | intraday | 60 | 247 | 0
+
+### reuniwatt_power_segments (16 rows)
+site | provider | horizon | granularity_min | rows | runs | first_issue | last_issue | first_period | last_period | last_ingested
+pv1 | reuniwatt | dayahead | 5 | 394848 | 7111 | 2025-12-02 00:00 | 2026-10-08 14:15 | 2025-12-02 00:00 | 2026-10-09 14:15 | 2026-10-08 14:18
+pv1 | reuniwatt | dayahead | 15 | 1920 | 1920 | 2025-12-02 00:00 | 2026-04-22 23:45 | 2025-12-02 00:00 | 2026-04-22 23:45 | 2026-09-29 10:48
+pv1 | reuniwatt | dayahead | 60 | 6216 | 6216 | 2025-03-26 00:00 | 2026-04-22 23:00 | 2025-03-26 00:00 | 2026-04-22 23:00 | 2026-09-29 10:48
+pv1 | reuniwatt | intraday | 5 | 51912 | 3703 | 2025-12-02 00:00 | 2026-10-08 14:15 | 2025-12-02 00:00 | 2026-10-08 20:15 | 2026-10-08 14:18
+pv1 | reuniwatt | intraday | 15 | 49464 | 1681 | 2025-12-02 00:00 | 2026-09-29 10:30 | 2025-12-02 00:00 | 2026-09-29 16:30 | 2026-09-29 10:48
+pv1 | reuniwatt | intraday | 60 | 254 | 254 | 2025-12-01 00:00 | 2026-04-22 17:00 | 2025-12-01 00:00 | 2026-04-22 17:00 | 2026-09-29 10:48
+pv1 | reuniwatt | weekahead | 5 | 1368864 | 679 | 2026-10-01 12:54 | 2026-10-08 14:15 | 2026-10-01 12:55 | 2026-10-15 14:15 | 2026-10-08 14:18
+pv1 | reuniwatt | weekahead | 60 | 1354752 | 672 | 2026-09-21 17:51 | 2026-09-29 10:31 | 2026-09-21 17:55 | 2026-10-06 10:30 | 2026-09-29 10:48
+pv2 | reuniwatt | dayahead | 5 | 394848 | 7111 | 2025-12-02 00:00 | 2026-10-08 14:16 | 2025-12-02 00:00 | 2026-10-09 14:15 | 2026-10-08 14:18
+pv2 | reuniwatt | dayahead | 15 | 1920 | 1920 | 2025-12-02 00:00 | 2026-04-22 23:45 | 2025-12-02 00:00 | 2026-04-22 23:45 | 2026-09-29 10:48
+pv2 | reuniwatt | dayahead | 60 | 6216 | 6216 | 2025-03-26 00:00 | 2026-04-22 23:00 | 2025-03-26 00:00 | 2026-04-22 23:00 | 2026-09-29 10:48
+pv2 | reuniwatt | intraday | 5 | 51912 | 3703 | 2025-12-02 00:00 | 2026-10-08 14:16 | 2025-12-02 00:00 | 2026-10-08 20:15 | 2026-10-08 14:18
+pv2 | reuniwatt | intraday | 15 | 49392 | 1680 | 2025-12-02 00:00 | 2026-09-29 10:31 | 2025-12-02 00:00 | 2026-09-29 16:30 | 2026-09-29 10:48
+pv2 | reuniwatt | intraday | 60 | 254 | 254 | 2025-12-01 00:00 | 2026-04-22 17:00 | 2025-12-01 00:00 | 2026-04-22 17:00 | 2026-09-29 10:48
+pv2 | reuniwatt | weekahead | 5 | 1368864 | 679 | 2026-10-01 12:54 | 2026-10-08 14:16 | 2026-10-01 12:55 | 2026-10-15 14:15 | 2026-10-08 14:18
+pv2 | reuniwatt | weekahead | 60 | 1354752 | 672 | 2026-09-21 17:51 | 2026-09-29 10:31 | 2026-09-21 17:55 | 2026-10-06 10:30 | 2026-09-29 10:48
+
+### reuniwatt_power_site_mapping (2 rows)
+site | pv_col | corr
+pv1 | PV2_MW | 0.2221
+pv2 | PV2_MW | 0.2358
+
+### reuniwatt_power_sources (3 rows)
+_source | rows | first_issue | last_issue | horizons
+api_incremental | 3226320 | 2026-10-01 12:54 | 2026-10-08 14:16 | [weekahead, intraday, dayahead]
+migration_new_pipeline | 3193704 | 2026-09-21 17:50 | 2026-09-29 10:31 | [weekahead, dayahead, intraday]
+migration_legacy | 36364 | 2025-03-26 00:00 | 2026-04-22 23:55 | [intraday, dayahead]
+
+### reuniwatt_power_stale_runs (10 rows)
+site | provider | horizon | granularity_min | runs_compared | stale_runs | stale_pct
+pv1 | reuniwatt | dayahead | 5 | 1350 | 254 | 18.81
+pv1 | reuniwatt | intraday | 5 | 487 | 8 | 1.64
+pv1 | reuniwatt | intraday | 15 | 482 | 1 | 0.21
+pv1 | reuniwatt | weekahead | 5 | 679 | 142 | 20.91
+pv1 | reuniwatt | weekahead | 60 | 671 | 135 | 20.12
+pv2 | reuniwatt | dayahead | 5 | 1350 | 359 | 26.59
+pv2 | reuniwatt | intraday | 5 | 487 | 50 | 10.27
+pv2 | reuniwatt | intraday | 15 | 485 | 53 | 10.93
+pv2 | reuniwatt | weekahead | 5 | 679 | 150 | 22.09
+pv2 | reuniwatt | weekahead | 60 | 671 | 160 | 23.85
+
+### reuniwatt_power_timezone_test (2 rows)
+assumed_tz | night_rows_with_power
+UTC | 0
+Asia/Dubai | 223724
+
+### reuniwatt_power_vs_irradiance (6 rows)
+site | horizon | matched_rows | corr_power_gti | corr_power_ghi
+pv1 | dayahead | 180334 |  | 0.9961
+pv1 | intraday | 44650 |  | 0.9962
+pv1 | weekahead | 1253796 |  | 0.9962
+pv2 | dayahead | 180332 | 0.9926 | 0.9339
+pv2 | intraday | 44607 | 0.9927 | 0.9343
+pv2 | weekahead | 1253796 | 0.9934 | 0.9393
