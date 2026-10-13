@@ -131,3 +131,17 @@ Feature columns in `fe_features_*`:
 - **Label:** `label_pv_mw`, `label_pv_norm`, `label_status`, `label_ok`.
 
 Not yet built: forecast revision between runs, Reuniwatt rolling bias, climatology blend, 15/60-minute aggregation, month-ahead/annual features.
+
+## 8. Model plan (decided 2026-10-13)
+
+**20 models: one per product × resolution × plant.** Lead time is a feature inside each model, not one model per step.
+
+| Product | Resolutions | Plants | Models |
+|---|---|---|---|
+| Intraday | 5, 15, 60 min | PV1, PV2 | 6 |
+| Day-ahead | 5, 15, 60 min | PV1, PV2 | 6 |
+| Week-ahead | 15, 60 min | PV1, PV2 | 4 |
+| Month-ahead | 60 min | PV1, PV2 | 2 |
+| Annual | 60 min | PV1, PV2 | 2 |
+
+Feature tables are built per product × resolution (both plants in one table, `site` column); each model trains on its plant's rows. 15- and 60-minute tables are averages of the 5-minute rows. Month-ahead and annual use climatology features, not Reuniwatt, and come last.
