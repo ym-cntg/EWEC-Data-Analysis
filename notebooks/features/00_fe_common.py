@@ -77,6 +77,15 @@ def ceil_to(col, minutes: int):
     return F.timestamp_seconds(F.ceil(F.unix_timestamp(c) / (minutes * 60)) * (minutes * 60))
 
 
+def power_scale_to_mw(max_value) -> float:
+    """Factor that converts Reuniwatt power to MW, judged from the largest value seen.
+    Plant peaks are ~950 / ~1,650 MW, so: > 10,000 means kW (Bronze), < 10 means GW (Silver), otherwise MW."""
+    mx = float(max_value or 0)
+    factor, unit = (0.001, "kW") if mx > 10_000 else (1000.0, "GW") if mx < 10 else (1.0, "MW")
+    print(f"Max raw power = {mx:,.3f} -> looks like {unit}; multiplying by {factor} to get MW")
+    return factor
+
+
 def site_value(key: str):
     """Column with SITES[<row's site>][key]."""
     expr = None

@@ -18,7 +18,7 @@
 # MAGIC - `migration_legacy` rows are dropped (flat JSON with no real issue time).
 # MAGIC - Latest ingestion per run.
 # MAGIC - Lead ≤ 0 dropped.
-# MAGIC - Power converted GW → MW.
+# MAGIC - Power converted to MW (Bronze sends kW, Silver GW; detected from the values).
 # MAGIC - `gti_poa` = sunlight on the panels (PV2 `gti`; PV1 mean of east and west).
 
 # COMMAND ----------
@@ -113,14 +113,13 @@ def from_bronze() -> DataFrame:
         *[F.col(f"z.{v}").alias(v) for v in BRONZE_VARS.values()],
     )
 
-    # Power unit: Reuniwatt sends GW (plant peaks ~0.9 / ~1.6). Check on one recent day-ahead run.
+    # Power unit: Bronze sends kW (e.g. 823,996 = 824 MW). Detected on one recent day-ahead run.
     sample = b.where("horizon = 'dayahead'").orderBy(F.desc("reference_time")).limit(1)
     sample_max = (
         sample.select(F.explode(F.map_values(F.try_element_at(F.try_element_at(F.from_json("_raw", JSON_SCHEMA), F.upper("site")), F.lit("power")))).alias("v"))
         .agg(F.max("v")).first()[0] or 0
     )
-    scale = 1000.0 if sample_max < 10 else 1.0
-    print(f"Sample max power = {sample_max} -> multiplying power by {scale} to get MW")
+    scale = power_scale_to_mw(sample_max)
     for c in POWER_COLS:
         out = out.withColumn(c, F.col(c) * scale)
     return out
@@ -142,8 +141,7 @@ def from_silver() -> DataFrame:
     )
     pwr = in_range(latest_per(prep(spark.table(REUNI_SILVER_PWR)), KEY))
     max_power = pwr.agg(F.max("power_mw")).first()[0] or 0
-    scale = 1000.0 if max_power < 10 else 1.0
-    print(f"Max power_mw in Silver = {max_power} -> multiplying by {scale} to get MW")
+    scale = power_scale_to_mw(max_power)
     pwr = pwr.select(*KEY, *[(F.col(c) * scale).alias(c) for c in POWER_COLS])
     return irr.join(pwr, KEY, "full")
 
