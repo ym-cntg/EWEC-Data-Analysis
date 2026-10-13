@@ -3,13 +3,13 @@
 # MAGIC # FE 05 · Run the feature pipeline
 # MAGIC Runs 02 → 03 → 04 (intraday, day-ahead, week-ahead) with the same settings, then writes a short summary to `results/fe_run_summary.txt` next to this notebook so it can be pushed to Git.
 # MAGIC
-# MAGIC Start with `source = silver` and `start_date = 2026-09-21` (data available today). Switch to `bronze` and `2024-01-23` once the Bronze parser exists.
+# MAGIC **First run:** keep the defaults (Bronze, from 2026-09-01) as a quick end-to-end test. **Then:** set `start_date = 2024-01-23` for the full history.
 
 # COMMAND ----------
 
 dbutils.widgets.text("output_schema", "ewec_dev_powerops.scratch_yash", "Output schema (catalog.schema)")
-dbutils.widgets.dropdown("source", "silver", ["silver", "bronze"], "Reuniwatt source")
-dbutils.widgets.text("start_date", "2026-09-21", "First origin date")
+dbutils.widgets.dropdown("source", "bronze", ["bronze", "silver"], "Reuniwatt source")
+dbutils.widgets.text("start_date", "2026-09-01", "First date (test: 2026-09-01, full: 2024-01-23)")
 dbutils.widgets.text("swap_date", "auto", "Bronze PV column swap date")
 
 # COMMAND ----------

@@ -116,8 +116,8 @@ GTI (per site), GHI, Reuniwatt power forecast, clear-sky index, sun elevation, h
 | Notebook | Output (in `output_schema`) | Notes |
 |---|---|---|
 | `00_fe_common` | — | Sites, capacities, sun position, clear-sky (Haurwitz), calendar, as-of join |
-| `01_fe_explore_bronze_json` | `results/bronze_json_layout.txt` | JSON layout of Bronze `_raw`, needed to write the Bronze parser |
-| `02_fe_reuniwatt_forecasts` | `fe_reuniwatt_forecasts` | One row per site × horizon × run × target; power in MW; `gti_poa`; lead ≤ 0 dropped. `source = silver` now, `bronze` once parsed |
+| `01_fe_explore_bronze_json` | `results/bronze_json_layout.txt` | Optional: dumps the Bronze JSON layout |
+| `02_fe_reuniwatt_forecasts` | `fe_reuniwatt_forecasts` | Unpacks Bronze JSON (site → variable → time → value) into one row per site × horizon × run × target; keeps all intraday runs, hourly day-ahead, 3-hourly week-ahead; power in MW; `gti_poa`; checks backfill = live on the 1 Oct overlap |
 | `03_fe_pv_target` | `fe_pv_target_5min` | Cleaned PV in UTC, Reuniwatt site labels, swap auto-detected, `status` / `label_ok` |
 | `04_fe_build_features` | `fe_features_{intraday,dayahead,weekahead}_5min` | Features at each origin + label at each target |
 | `05_fe_run_all` | `results/fe_run_summary.txt` | Runs 02 → 03 → 04 ×3 |
