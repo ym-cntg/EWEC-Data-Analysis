@@ -173,7 +173,7 @@ display(df.where("power_p10_mw > power_mw + 0.001 OR power_mw > power_p90_mw + 0
 
 # MAGIC %md ## 9. `power_mw` vs. `power_mw_original`, and `quality_flag`
 # MAGIC `power_mw_original` appears to be the forecast before some adjustment (clipping, scaling or a fix). This section shows how often and by how much the two differ, and whether that lines up with `quality_flag`.
-# MAGIC Unexplained differences, or differences with no flag, should be raised with Harish or Nitheesh.
+# MAGIC Unexplained differences, or differences with no flag, should be raised with Nitheesh (Reuniwatt pipeline owner).
 
 # COMMAND ----------
 

@@ -5,7 +5,7 @@
 # MAGIC 2. When it finishes, open `07_dq_export`, **Run all**, and copy its single output.
 # MAGIC
 # MAGIC What it does:
-# MAGIC - Creates the scratch schema if it's missing (needs `CREATE SCHEMA` on the catalog; otherwise ask Harish).
+# MAGIC - Creates the scratch schema if it's missing (needs `CREATE SCHEMA` on the catalog; otherwise ask your Databricks admin).
 # MAGIC - Runs 01 → 02 (PV1, PV2) → 04 → 03 → 05 → 06 and records status, duration and errors in `dq_run_log`. A failing notebook doesn't stop the others.
 # MAGIC - **Auto re-runs** 05 and 06 with `timestamps_tz = Asia/Dubai` if their timezone test says so, and 06 with `pv_shift_h` if PV is offset.
 # MAGIC
@@ -30,7 +30,7 @@ try:
     spark.sql(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA} COMMENT 'Data-quality check outputs'")
     print(f"Schema ready: {SCHEMA}")
 except Exception as e:
-    raise RuntimeError(f"Cannot create or use {SCHEMA}. Ask Harish for a schema you can write to, then set the widget. ({e})")
+    raise RuntimeError(f"Cannot create or use {SCHEMA}. Ask your Databricks admin for a schema you can write to, then set the widget. ({e})")
 
 LOG = []
 

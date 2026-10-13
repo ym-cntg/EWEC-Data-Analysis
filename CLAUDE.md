@@ -5,9 +5,10 @@
 Short-term solar PV power generation forecasting for EWEC, run by Contango on Databricks. Code lives in `databricks_ewec_solar_inference/`. The README calls it "UC2 solar"; UC1 is the separate power/load forecasting pipeline.
 
 - **Owner / lead:** Zaynab Habibi. Daily check-ins with Yash start the week of 2026-10-11.
-- **Catalog access / ingestion:** Harish Naidu
+- **Director:** Harish Naidu
+- **Reuniwatt pipeline / tables owner:** Nitheesh Panicker (owner of `ewec_dev_reuniwatt.silver` tables in Catalog Explorer)
 - **Team:** Shourya, Nitheesh, Mohan
-- **Yash's current task:** data quality and data completeness checks on the source tables. That covers the existing Solcast and PV telemetry inputs, plus the new historical **Reuniwatt** weather/irradiance data Harish ingested into catalog `ewec_dev_reuniwatt` (heard as "renewal" in meetings).
+- **Yash's current task:** data quality and data completeness checks on the source tables. That covers the existing Solcast and PV telemetry inputs, plus the new historical **Reuniwatt** weather/irradiance data ingested into catalog `ewec_dev_reuniwatt` (heard as "renewal" in meetings).
 
 Weather inputs come from two possible sources: **Solcast** (current) and the new **Reuniwatt** source (`ewec_dev_reuniwatt`). Part of the goal is to assess whether the new source can replace or supplement Solcast.
 

@@ -18,7 +18,7 @@ The checks therefore run on the raw Bronze tables. Notebook 03 then measures how
 
 1. Pull the Git folder in Databricks.
 2. Open **`00_run_all`**. Check the `scratch_schema` widget (default `ewec_dev_powerops.scratch_yash`), then **Run all**.
-   - It creates the schema if needed. If you lack permission, ask Harish for a schema you can write to.
+   - It creates the schema if needed. If you lack permission, ask your Databricks admin for a schema you can write to.
    - It runs 01 → 02 (PV1, PV2) → 04 → 03 → 05 → 06. A failing notebook is logged in `dq_run_log` and the rest continue.
    - It re-runs 05 and 06 with `timestamps_tz = Asia/Dubai` if their timezone test says so, and 06 with `pv_shift_h` if PV is offset.
 3. Open **`07_dq_export`** with the same `scratch_schema`, **Run all**, and copy the output of the last cell. It is every result as one block of text, also saved to `results/dq_export.txt` in the repo; commit and push it to share.
