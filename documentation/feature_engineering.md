@@ -110,3 +110,24 @@ No weather forecast reaches this far. Features:
 ## 6. Suggested starting set
 
 GTI (per site), GHI, Reuniwatt power forecast, clear-sky index, sun elevation, hour / day-of-year, panel temperature, p10–p90 width, lead time, clipping indicator; plus PV at origin, actual clear-sky index at origin and Reuniwatt error at origin for intraday. Train on a capacity-normalised, daytime-only, outage-free target. Add the rest only where they improve validation MAPE.
+
+## 7. Pipeline (`notebooks/features/`)
+
+| Notebook | Output (in `output_schema`) | Notes |
+|---|---|---|
+| `00_fe_common` | — | Sites, capacities, sun position, clear-sky (Haurwitz), calendar, as-of join |
+| `01_fe_explore_bronze_json` | `results/bronze_json_layout.txt` | JSON layout of Bronze `_raw`, needed to write the Bronze parser |
+| `02_fe_reuniwatt_forecasts` | `fe_reuniwatt_forecasts` | One row per site × horizon × run × target; power in MW; `gti_poa`; lead ≤ 0 dropped. `source = silver` now, `bronze` once parsed |
+| `03_fe_pv_target` | `fe_pv_target_5min` | Cleaned PV in UTC, Reuniwatt site labels, swap auto-detected, `status` / `label_ok` |
+| `04_fe_build_features` | `fe_features_{intraday,dayahead,weekahead}_5min` | Features at each origin + label at each target |
+| `05_fe_run_all` | `results/fe_run_summary.txt` | Runs 02 → 03 → 04 ×3 |
+
+Feature columns in `fe_features_*`:
+- **Reuniwatt, per horizon** (`id_` intraday, `da_` day-ahead, `wa_` week-ahead): `ghi`, `dni`, `dhi`, `gti_poa`, `power_mw`, `power_p10_mw`, `power_p90_mw`, run time and age; `da_` also `temp_c`, `dewpoint_c`, `humidity_pct`, `wind_speed`, `cloud_opacity`.
+- **Best available** (`f_*`): main horizon first, others as fallback.
+- **Sun and calendar:** `sun_zenith`, `sun_elevation`, `cos_zenith`, `air_mass`, `etr_horizontal`, `clearsky_ghi`, `is_day`, `t_hour/doy_sin/cos`, `o_hour_sin/cos`, `lead_min`.
+- **Derived:** `csi_ghi`, `kt`, `diffuse_frac`, `power_norm`, `band_width_norm`, `clip_flag`, `t_cell_c`, `temp_derate`, `disagree_da_wa`, `disagree_id_da`.
+- **State at origin:** `o_pv_norm`, `o_pv_mean_30m_norm`, `o_pv_mean_60m_norm`, `o_pv_trend_30m_norm`, `o_pv_vs_clearsky`, `o_reuni_ratio_60m`.
+- **Label:** `label_pv_mw`, `label_pv_norm`, `label_status`, `label_ok`.
+
+Not yet built: forecast revision between runs, Reuniwatt rolling bias, climatology blend, 15/60-minute aggregation, month-ahead/annual features.
