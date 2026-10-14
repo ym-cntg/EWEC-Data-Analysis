@@ -1,0 +1,173 @@
+# Sensors vs Reuniwatt · window 2026-07-01 → 2026-10-13 · run 2026-10-14 13:43 UTC · swap date 2026-03-17
+
+### sensor coverage (2 rows)
+site | periods | target_max | m_ghi_pct | m_gti_east_pct | m_gti_west_pct | m_gti_poa_pct | m_temp_c_pct | m_humidity_pct_pct | m_wind_speed_pct | m_wind_dir_pct | actual_mw_pct | avl_mw_pct
+pv2 | 30100 | 1640 | 68.9 | 0 | 0 | 67.9 | 99.5 | 99.9 | 99 | 41.2 | 68.3 | 63.7
+pv1 | 30100 | 845 | 70.9 | 70.8 | 70.8 | 70.2 | 100 | 100 | 0 | 0 | 67.4 | 0
+
+### step 6 · sunlight: Reuniwatt vs measured (daytime) (52 rows)
+site | horizon | lead_bucket | n | corr | bias | mae | nmae_pct | variable
+pv1 | dayahead | 0-6h | 92139 | 0.988 | -0.7 | 24.2 | 4.2 | GHI
+pv1 | dayahead | 12-24h | 184589 | 0.989 | 6.1 | 23.1 | 4 | GHI
+pv1 | dayahead | 6-12h | 91634 | 0.988 | 5.6 | 23.7 | 4.1 | GHI
+pv1 | intraday | 0-1h | 59968 | 0.984 | -10.9 | 28.7 | 5 | GHI
+pv1 | intraday | 1-3h | 119365 | 0.988 | -2.6 | 24.7 | 4.3 | GHI
+pv1 | intraday | 3-6h | 178307 | 0.989 | 3.5 | 23.1 | 4 | GHI
+pv1 | weekahead | day 1 | 123103 | 0.988 | 4.2 | 23.6 | 4.1 | GHI
+pv1 | weekahead | day 2 | 121867 | 0.988 | 7.7 | 24.1 | 4.2 | GHI
+pv1 | weekahead | day 3 | 120928 | 0.987 | 8.7 | 24.2 | 4.2 | GHI
+pv1 | weekahead | day 4 | 120172 | 0.987 | 6.2 | 26.5 | 4.6 | GHI
+pv1 | weekahead | day 5 | 119060 | 0.983 | 6.1 | 30 | 5.2 | GHI
+pv1 | weekahead | day 6 | 117820 | 0.981 | 11.5 | 35.9 | 6.2 | GHI
+pv1 | weekahead | day 7 | 116581 | 0.98 | 12.4 | 39.5 | 6.9 | GHI
+pv2 | dayahead | 0-6h | 92073 | 0.992 | 11.3 | 23.6 | 4.1 | GHI
+pv2 | dayahead | 12-24h | 184378 | 0.992 | 18.8 | 24.7 | 4.3 | GHI
+pv2 | dayahead | 6-12h | 91517 | 0.992 | 18.4 | 24.2 | 4.2 | GHI
+pv2 | intraday | 0-1h | 59924 | 0.99 | 5.2 | 26.8 | 4.7 | GHI
+pv2 | intraday | 1-3h | 119269 | 0.992 | 9.2 | 24.2 | 4.2 | GHI
+pv2 | intraday | 3-6h | 178139 | 0.992 | 14.7 | 23.1 | 4 | GHI
+pv2 | weekahead | day 1 | 122997 | 0.992 | 16.7 | 24.5 | 4.3 | GHI
+pv2 | weekahead | day 2 | 121779 | 0.991 | 20.6 | 26.1 | 4.6 | GHI
+pv2 | weekahead | day 3 | 120840 | 0.991 | 21.5 | 27.6 | 4.8 | GHI
+pv2 | weekahead | day 4 | 120084 | 0.989 | 19.6 | 29.6 | 5.2 | GHI
+pv2 | weekahead | day 5 | 118972 | 0.987 | 21.9 | 33.6 | 5.9 | GHI
+pv2 | weekahead | day 6 | 117732 | 0.986 | 24.1 | 37.9 | 6.7 | GHI
+pv2 | weekahead | day 7 | 116493 | 0.986 | 24.5 | 39.1 | 6.9 | GHI
+pv1 | dayahead | 0-6h | 92139 | 0.988 | 2.1 | 25.2 | 4.4 | GTI (panels)
+pv1 | dayahead | 12-24h | 184589 | 0.988 | 8.8 | 24.5 | 4.3 | GTI (panels)
+pv1 | dayahead | 6-12h | 91634 | 0.988 | 8.2 | 25.2 | 4.4 | GTI (panels)
+pv1 | intraday | 0-1h | 59968 | 0.984 | -7.9 | 29.4 | 5.1 | GTI (panels)
+pv1 | intraday | 1-3h | 119365 | 0.988 | 0.3 | 25.4 | 4.4 | GTI (panels)
+pv1 | intraday | 3-6h | 178307 | 0.989 | 6.2 | 24.4 | 4.3 | GTI (panels)
+pv1 | weekahead | day 1 | 123103 | 0.988 | 6.9 | 24.9 | 4.3 | GTI (panels)
+pv1 | weekahead | day 2 | 121867 | 0.987 | 10.4 | 25.6 | 4.4 | GTI (panels)
+pv1 | weekahead | day 3 | 120928 | 0.987 | 11.5 | 25.9 | 4.5 | GTI (panels)
+pv1 | weekahead | day 4 | 120172 | 0.986 | 9 | 28.1 | 4.9 | GTI (panels)
+pv1 | weekahead | day 5 | 119060 | 0.983 | 9 | 31.7 | 5.5 | GTI (panels)
+pv1 | weekahead | day 6 | 117820 | 0.98 | 14.4 | 38.4 | 6.7 | GTI (panels)
+pv1 | weekahead | day 7 | 116581 | 0.979 | 15.3 | 42.2 | 7.4 | GTI (panels)
+pv2 | dayahead | 0-6h | 92073 | 0.983 | 39.2 | 49.9 | 7.3 | GTI (panels)
+pv2 | dayahead | 12-24h | 184378 | 0.981 | 50.1 | 54.5 | 8 | GTI (panels)
+pv2 | dayahead | 6-12h | 91517 | 0.982 | 49 | 53.8 | 7.8 | GTI (panels)
+pv2 | intraday | 0-1h | 59924 | 0.979 | 33 | 53.6 | 7.8 | GTI (panels)
+pv2 | intraday | 1-3h | 119269 | 0.982 | 35.9 | 49.2 | 7.2 | GTI (panels)
+pv2 | intraday | 3-6h | 178139 | 0.983 | 44 | 50.7 | 7.4 | GTI (panels)
+pv2 | weekahead | day 1 | 122997 | 0.982 | 46.8 | 53.1 | 7.8 | GTI (panels)
+pv2 | weekahead | day 2 | 121779 | 0.979 | 53.1 | 57.3 | 8.4 | GTI (panels)
+pv2 | weekahead | day 3 | 120840 | 0.977 | 54.4 | 59.4 | 8.7 | GTI (panels)
+pv2 | weekahead | day 4 | 120084 | 0.973 | 51.1 | 59.9 | 8.8 | GTI (panels)
+pv2 | weekahead | day 5 | 118972 | 0.97 | 52 | 64.3 | 9.4 | GTI (panels)
+pv2 | weekahead | day 6 | 117732 | 0.966 | 50.3 | 69.4 | 10.2 | GTI (panels)
+pv2 | weekahead | day 7 | 116493 | 0.965 | 49.5 | 70.9 | 10.4 | GTI (panels)
+
+### step 7 · weather: Reuniwatt day-ahead vs measured (15 rows)
+site | lead_bucket | n | corr | bias | mae | nmae_pct | variable
+pv1 | 0-6h | 187374 | 0.868 | -7.8 | 9.2 | 23.5 | humidity (%)
+pv1 | 12-24h | 373656 | 0.85 | -9 | 10.2 | 26 | humidity (%)
+pv1 | 6-12h | 187360 | 0.867 | -8.3 | 9.6 | 24.3 | humidity (%)
+pv2 | 0-6h | 187236 | 0.795 | -5.7 | 11.8 | 23.3 | humidity (%)
+pv2 | 12-24h | 373380 | 0.757 | -7 | 12.8 | 25.3 | humidity (%)
+pv2 | 6-12h | 187222 | 0.79 | -6.2 | 12.1 | 23.7 | humidity (%)
+pv1 | 0-6h | 187356 | 0.96 | -0.3 | 1.7 | 4.8 | temperature (°C)
+pv1 | 12-24h | 373620 | 0.956 | -0.3 | 1.8 | 5.1 | temperature (°C)
+pv1 | 6-12h | 187342 | 0.96 | -0.3 | 1.7 | 4.9 | temperature (°C)
+pv2 | 0-6h | 186420 | 0.928 | 0 | 2.7 | 7.6 | temperature (°C)
+pv2 | 12-24h | 371759 | 0.925 | 0 | 2.7 | 7.6 | temperature (°C)
+pv2 | 6-12h | 186406 | 0.931 | 0 | 2.6 | 7.5 | temperature (°C)
+pv2 | 0-6h | 185466 | 0.473 | -1.4 | 2.2 | 40.2 | wind speed
+pv2 | 12-24h | 369882 | 0.473 | -1.4 | 2.2 | 40.3 | wind speed
+pv2 | 6-12h | 185452 | 0.461 | -1.4 | 2.2 | 40.6 | wind speed
+
+### step 8 · correlation with target (daytime) (18 rows)
+site | n | corr_with_target | corr_with_actual_mw | input
+pv1 | 14652 | 0.997 | 0.997 | measured GHI
+pv1 | 14652 | 0.997 | 0.997 | measured GTI (panels)
+pv1 | 14284 | 0.988 | 0.988 | Reuniwatt day-ahead GTI (12-24h)
+pv1 | 14284 | 0.987 | 0.987 | Reuniwatt day-ahead GHI (12-24h)
+pv1 | 14365 | 0.987 | 0.987 | Reuniwatt week-ahead power (latest)
+pv1 | 14284 | 0.986 | 0.986 | Reuniwatt day-ahead power (12-24h)
+pv1 | 13914 | 0.985 | 0.985 | Reuniwatt intraday GHI (latest)
+pv1 | 13914 | 0.985 | 0.985 | Reuniwatt intraday GTI (latest)
+pv1 | 13914 | 0.984 | 0.984 | Reuniwatt intraday power (latest)
+pv2 | 13593 | 0.998 | 0.997 | measured GTI (panels)
+pv2 | 13042 | 0.982 | 0.979 | Reuniwatt intraday GTI (latest)
+pv2 | 13042 | 0.98 | 0.978 | Reuniwatt intraday power (latest)
+pv2 | 13305 | 0.98 | 0.979 | Reuniwatt day-ahead GTI (12-24h)
+pv2 | 13362 | 0.98 | 0.979 | Reuniwatt week-ahead power (latest)
+pv2 | 13305 | 0.977 | 0.976 | Reuniwatt day-ahead power (12-24h)
+pv2 | 13593 | 0.941 | 0.952 | measured GHI
+pv2 | 13042 | 0.94 | 0.951 | Reuniwatt intraday GHI (latest)
+pv2 | 13305 | 0.926 | 0.939 | Reuniwatt day-ahead GHI (12-24h)
+
+### step 9 · day-ahead 12-24h bias by Gulf hour (26 rows)
+site | gulf_hour | ghi_bias | ghi_mae | gti_bias
+pv1 | 6 | -7.7 | 12.2 | -12.5
+pv1 | 7 | -2 | 17.4 | -6.1
+pv1 | 8 | 4 | 20.3 | 0.6
+pv1 | 9 | 4.3 | 21.5 | 3.8
+pv1 | 10 | 8 | 23.2 | 10.4
+pv1 | 11 | 4.2 | 19 | 8.3
+pv1 | 12 | 5.9 | 18.4 | 11.5
+pv1 | 13 | 13.1 | 27.4 | 20.4
+pv1 | 14 | 2.9 | 26.2 | 11.4
+pv1 | 15 | 9.8 | 34.2 | 17.6
+pv1 | 16 | 12.7 | 32.3 | 18
+pv1 | 17 | 10.8 | 23.2 | 12.8
+pv1 | 18 | 5.8 | 13.7 | 5.5
+pv2 | 6 | -2.9 | 8.5 | -6
+pv2 | 7 | 7.5 | 16.8 | 28.9
+pv2 | 8 | 19.8 | 26.6 | 86.4
+pv2 | 9 | 17.3 | 25.2 | 62.7
+pv2 | 10 | 21.8 | 28.4 | 46.8
+pv2 | 11 | 24.1 | 30.8 | 36.8
+pv2 | 12 | 22.6 | 27.7 | 30.4
+pv2 | 13 | 22.8 | 27.2 | 39.1
+pv2 | 14 | 21.5 | 26.2 | 53.9
+pv2 | 15 | 18.5 | 23.7 | 73.5
+pv2 | 16 | 22.5 | 26.9 | 83.5
+pv2 | 17 | 20 | 23 | 48.1
+pv2 | 18 | 18 | 18.9 | 21.4
+
+### step 9 · day-ahead 12-24h bias by month (8 rows)
+site | month | ghi_bias | ghi_mae | ghi_corr
+pv1 | 2026-07-01 00:00 | 3.7 | 25.7 | 0.991
+pv1 | 2026-08-01 00:00 | 16.7 | 32.7 | 0.979
+pv1 | 2026-09-01 00:00 | -0.5 | 15.8 | 0.995
+pv1 | 2026-10-01 00:00 | 4 | 13.7 | 0.995
+pv2 | 2026-07-01 00:00 | 19 | 26.5 | 0.996
+pv2 | 2026-08-01 00:00 | 28.4 | 34.5 | 0.982
+pv2 | 2026-09-01 00:00 | 11 | 15.9 | 0.998
+pv2 | 2026-10-01 00:00 | 17.4 | 21.5 | 0.993
+
+### step 10 · worst days (day-ahead 12-24h GHI energy) (30 rows)
+site | gulf_day | error_pct | measured_clearsky_index | forecast_clearsky_index
+pv1 | 2026-07-03 | -91 | 0.86 | 0.08
+pv2 | 2026-07-03 | -90.6 | 0.9 | 0.08
+pv2 | 2026-08-31 | 32.2 | 0.71 | 0.94
+pv2 | 2026-08-02 | 21.8 | 0.72 | 0.87
+pv2 | 2026-08-11 | 21.2 | 0.74 | 0.89
+pv2 | 2026-08-08 | 19.3 | 0.74 | 0.88
+pv1 | 2026-08-04 | 17.4 | 0.72 | 0.84
+pv1 | 2026-08-19 | 14 | 0.78 | 0.89
+pv1 | 2026-08-06 | 13.6 | 0.79 | 0.89
+pv2 | 2026-08-03 | 13.4 | 0.81 | 0.92
+pv1 | 2026-08-16 | 13.3 | 0.62 | 0.7
+pv2 | 2026-08-16 | 12.2 | 0.64 | 0.72
+pv2 | 2026-09-30 | 12 | 0.85 | 0.95
+pv1 | 2026-08-02 | 11.2 | 0.79 | 0.87
+pv2 | 2026-08-07 | 11.1 | 0.82 | 0.91
+pv2 | 2026-08-19 | 10 | 0.81 | 0.89
+pv2 | 2026-08-04 | 9.8 | 0.74 | 0.82
+pv2 | 2026-07-27 | 9.4 | 0.81 | 0.89
+pv2 | 2026-07-28 | 8.6 | 0.83 | 0.91
+pv2 | 2026-07-30 | 8.6 | 0.84 | 0.91
+pv2 | 2026-10-13 | 8.1 | 0.85 | 0.92
+pv2 | 2026-07-15 | 7.7 | 0.85 | 0.91
+pv2 | 2026-07-18 | 7.3 | 0.85 | 0.91
+pv2 | 2026-07-31 | 7.2 | 0.84 | 0.9
+pv2 | 2026-10-07 | 7 | 0.89 | 0.95
+pv1 | 2026-08-23 | 7 | 0.79 | 0.84
+pv1 | 2026-08-25 | 6.9 | 0.85 | 0.91
+pv2 | 2026-07-26 | 6.4 | 0.85 | 0.91
+pv1 | 2026-08-11 | 5.8 | 0.83 | 0.88
+pv2 | 2026-08-17 | 5.7 | 0.87 | 0.92
