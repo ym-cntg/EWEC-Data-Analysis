@@ -14,7 +14,9 @@ Weather inputs come from two possible sources: **Solcast** (current) and the new
 
 ## Sites and target
 
-- Two sites: `PV1`, `PV2`. Single target column: `PV_MW` (instantaneous MW, a rate, not energy).
+- Two sites: `PV1` = small plant (~950 MW, east/west panels), `PV2` = large plant (~1,650 MW). Labels follow the plant sensors, `Pv2_AVL` and Reuniwatt.
+- **Targets (agreed 2026-10-14):** PV1 = actual MW; **PV2 = `Pv2_AVL` (available power)**. Legacy pipeline used `PV_MW` for both.
+- ⚠️ Bronze `PV1_MW` / `PV2_MW` were **mislabelled before ~March 2026** (PV1_MW held the large plant) and correct afterwards; sensor columns were never swapped. The feature pipeline detects the swap date (`detect_pv_swap_date`).
 - ⚠️ **PV1/PV2 labels are intentionally swapped at Bronze→Silver.** In Silver and downstream, `site='PV1'` rows contain upstream PV2 telemetry, and the reverse. Always account for this when reconciling Bronze vs. Silver.
 - Granularities: 5min, 15min, 60min. Code uses `hourly` and `60min` interchangeably.
 
@@ -23,7 +25,7 @@ Weather inputs come from two possible sources: **Solcast** (current) and the new
 ### Bronze (raw inputs) — primary data-quality targets
 | Table | Contents |
 |---|---|
-| `ewec_dev_powerops.bronze.power_contango_minute_pv` | 1-min PV telemetry: `DateTime`, `PV1_MW`, `PV2_MW` |
+| `ewec_dev_powerops.bronze.power_contango_minute_pv` | 1-min PV telemetry (Gulf time): `PV1_MW`, `PV2_MW`, `Pv2_AVL`, plant sensors `PV1_GHI`, `PV1_ArrayRadiance_east/west`, `PV1_Temp`, `PV1_HumidityPer`, `PV2_GHI`, `PV2_ArrayRadiance` (2026+), `PV2_Outdoor_Temp`, `PV2_HumidityPer`, `PV2_WindSpeed/Direction`; `PV_Misc_MW` (ignore) |
 | `ewec_dev_powerops.bronze.pv1_history_solcast` | Solcast irradiance/weather for PV1, keyed on `period_end` |
 | `ewec_dev_powerops.bronze.pv2_history_solcast` | Same for PV2 (`relative_humidity` effectively unused) |
 | `ewec_dev_reuniwatt.silver.fact_solar_irradiance` | Reuniwatt irradiance forecasts: `site` (pv1/pv2), `provider`, `horizon` (intraday/dayahead/weekahead), `reference_time` (issue), `period_end`, `granularity_min` |

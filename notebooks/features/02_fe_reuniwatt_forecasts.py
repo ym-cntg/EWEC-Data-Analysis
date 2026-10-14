@@ -62,67 +62,12 @@ def latest_per(df: DataFrame, keys) -> DataFrame:
 
 # COMMAND ----------
 
-# JSON variable name -> output column
-BRONZE_VARS = {
-    "ghi": "ghi", "dni": "dni", "dhi": "dhi", "bhi": "bhi",
-    "gti": "gti", "gti_90": "gti_east", "gti_270": "gti_west",
-    "temperature": "temp_c", "dewpoint": "dewpoint_c", "relative_humidity": "humidity_pct",
-    "wind_speed": "wind_speed", "wind_direction": "wind_dir", "cloud_opacity": "cloud_opacity",
-    "pressure": "pressure_hpa", "precip": "precip_rate_mmh", "clearness_index": "clearness_index",
-    "power": "power_mw", "power10": "power_p10_mw", "power90": "power_p90_mw",
-}
-POWER_COLS = ["power_mw", "power_p10_mw", "power_p90_mw"]
-KEEP_RUN_EVERY_MIN = {"intraday": 15, "dayahead": 60, "weekahead": 180}
-JSON_SCHEMA = "MAP<STRING, MAP<STRING, MAP<STRING, DOUBLE>>>"
+POWER_COLS = REUNI_POWER_COLS
 
 
 def from_bronze() -> DataFrame:
-    b = prep(spark.table(REUNI_BRONZE).where(F.col("_source") != "migration_legacy"))
-    b = in_range(b)
-
-    # Keep the first run in each thinning slot (minute of day modulo the slot length)
-    every = None
-    for h, m in KEEP_RUN_EVERY_MIN.items():
-        every = F.when(F.col("horizon") == h, F.lit(m)) if every is None else every.when(F.col("horizon") == h, F.lit(m))
-    minute_of_day = F.hour("reference_time") * 60 + F.minute("reference_time")
-    b = b.where((minute_of_day % every) < 15)
-    b = latest_per(b, ["site", "horizon", "reference_time"])
-
-    # site -> variable -> (time -> value). try_element_at returns null for variables a product doesn't have.
-    # Map lookups in Spark scan the whole map, so instead of map[time] per variable we sort each variable's
-    # (time, value) pairs by time and zip them: every variable in a run has the same time keys.
-    m = F.try_element_at(F.from_json("_raw", JSON_SCHEMA), F.upper("site"))
-    runs = b.select("site", "horizon", "reference_time", F.col("_source").alias("raw_source"), m.alias("m"))
-
-    def sorted_entries(var):
-        return F.array_sort(F.map_entries(F.try_element_at("m", F.lit(var))))
-
-    runs = runs.withColumn("_times", F.transform(sorted_entries("ghi"), lambda e: e["key"])).withColumn("_n", F.size("_times"))
-    runs = runs.where("_n > 0")
-    for k, v in BRONZE_VARS.items():
-        ent = sorted_entries(k)
-        runs = runs.withColumn(
-            v,
-            F.when(F.size(ent) == F.col("_n"), F.transform(ent, lambda e: e["value"]))
-            .otherwise(F.array_repeat(F.lit(None).cast("double"), F.col("_n"))),  # variable absent for this product
-        )
-    zipped = runs.select("site", "horizon", "reference_time", "raw_source", F.explode(F.arrays_zip("_times", *BRONZE_VARS.values())).alias("z"))
-    out = zipped.select(
-        "site", "horizon", "reference_time", "raw_source",
-        F.to_timestamp(F.col("z._times"), "yyyy-MM-dd'T'HH:mm:ssXXX").alias("period_end"),
-        *[F.col(f"z.{v}").alias(v) for v in BRONZE_VARS.values()],
-    )
-
-    # Power unit: Bronze sends kW (e.g. 823,996 = 824 MW). Detected on one recent day-ahead run.
-    sample = b.where("horizon = 'dayahead'").orderBy(F.desc("reference_time")).limit(1)
-    sample_max = (
-        sample.select(F.explode(F.map_values(F.try_element_at(F.try_element_at(F.from_json("_raw", JSON_SCHEMA), F.upper("site")), F.lit("power")))).alias("v"))
-        .agg(F.max("v")).first()[0] or 0
-    )
-    scale = power_scale_to_mw(sample_max)
-    for c in POWER_COLS:
-        out = out.withColumn(c, F.col(c) * scale)
-    return out
+    # Shared reader in 00_fe_common (same code as used by the comparison notebook)
+    return reuniwatt_from_bronze(START, END)
 
 # COMMAND ----------
 

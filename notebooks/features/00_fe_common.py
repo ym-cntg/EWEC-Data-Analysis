@@ -162,3 +162,113 @@ def asof_runs(origins: DataFrame, runs: DataFrame, latency_min: int) -> DataFram
         .select("site", F.col("t").alias("origin"), "run_time")
         .withColumn("run_age_min", (F.unix_timestamp("origin") - F.unix_timestamp("run_time")) / 60)
     )
+
+# COMMAND ----------
+
+# MAGIC %md ## PV telemetry: cleaning and column swap
+# MAGIC Labels follow the plant sensors and `Pv2_AVL`: **PV1 = small plant** (east/west panels), **PV2 = large plant**.
+# MAGIC Before ~March 2026 the Bronze MW columns were mislabelled (`PV1_MW` held the large plant); afterwards they are correct. Sensor columns were never swapped.
+# MAGIC **Targets (agreed 2026-10-14):** PV1 = actual MW; PV2 = `Pv2_AVL` (available power).
+
+# COMMAND ----------
+
+from datetime import date, timedelta
+
+
+def clean_pv_mw(c: str):
+    """Corrupt (|v| > 5,000) and strongly negative values -> null; small negatives (night self-consumption) -> 0."""
+    v = F.col(c).cast("double")
+    return (F.when(F.abs(v) > PV_SENTINEL_ABS_MW, F.lit(None).cast("double"))
+            .when(v < NIGHT_NEG_FLOOR_MW, F.lit(None).cast("double"))
+            .when(v < 0, F.lit(0.0)).otherwise(v))
+
+
+def detect_pv_swap_date():
+    """Day the Bronze MW columns switched (7-day majority of which column has the larger daily peak). None if never."""
+    daily = (
+        spark.table(PV_BRONZE)
+        .select(F.to_date(F.col("DateTime").cast("timestamp")).alias("day"), clean_pv_mw("PV1_MW").alias("a"), clean_pv_mw("PV2_MW").alias("b"))
+        .groupBy("day").agg(F.max("a").alias("pv1_peak"), F.max("b").alias("pv2_peak"))
+        .withColumn("pv2_bigger", (F.col("pv2_peak") > F.col("pv1_peak")).cast("int"))
+        .withColumn("pv2_bigger_7d", F.avg("pv2_bigger").over(Window.orderBy("day").rowsBetween(-3, 3)))
+    )
+    last_pv1_big = daily.where("pv2_bigger_7d < 0.5").agg(F.max("day")).first()[0]
+    last_day = daily.agg(F.max("day")).first()[0]
+    swap = (last_pv1_big + timedelta(days=1)) if last_pv1_big and last_pv1_big < last_day else None
+    print("Bronze MW column swap date:", swap)
+    return swap
+
+
+def site_mw(site: str, swap_day, ts_col: str = "ts_gulf"):
+    """Cleaned actual MW for a site, taking the Bronze column swap into account."""
+    cfg = SITES[site]
+    swap_lit = F.lit(swap_day or date(9999, 12, 31))
+    return F.when(F.to_date(ts_col) < swap_lit, clean_pv_mw(cfg["bronze_col_before_swap"])).otherwise(clean_pv_mw(cfg["bronze_col_after_swap"]))
+
+# COMMAND ----------
+
+# MAGIC %md ## Reuniwatt Bronze reader
+# MAGIC `_raw` JSON = site → variable → (UTC target time → value). Unpacked by sorting each variable's (time, value) pairs and zipping them (no slow map look-ups).
+# MAGIC Keeps every intraday run, hourly day-ahead runs and 3-hourly week-ahead runs; drops `migration_legacy`; power converted to MW.
+
+# COMMAND ----------
+
+REUNI_JSON_SCHEMA = "MAP<STRING, MAP<STRING, MAP<STRING, DOUBLE>>>"
+REUNI_VARS = {
+    "ghi": "ghi", "dni": "dni", "dhi": "dhi", "bhi": "bhi",
+    "gti": "gti", "gti_90": "gti_east", "gti_270": "gti_west",
+    "temperature": "temp_c", "dewpoint": "dewpoint_c", "relative_humidity": "humidity_pct",
+    "wind_speed": "wind_speed", "wind_direction": "wind_dir", "cloud_opacity": "cloud_opacity",
+    "pressure": "pressure_hpa", "precip": "precip_rate_mmh", "clearness_index": "clearness_index",
+    "power": "power_mw", "power10": "power_p10_mw", "power90": "power_p90_mw",
+}
+REUNI_POWER_COLS = ["power_mw", "power_p10_mw", "power_p90_mw"]
+REUNI_KEEP_RUN_EVERY_MIN = {"intraday": 15, "dayahead": 60, "weekahead": 180}
+
+
+def reuniwatt_from_bronze(start: str, end: str = "") -> DataFrame:
+    """One row per site × horizon × run × 5-min target, runs issued between start and end (UTC dates)."""
+    b = (
+        spark.table(REUNI_BRONZE).where(F.col("_source") != "migration_legacy")
+        .withColumn("reference_time", F.col("reference_time").cast("timestamp"))
+        .withColumn("_ingested_at", F.col("_ingested_at").cast("timestamp"))
+        .withColumn("site", F.lower(F.trim("site"))).withColumn("horizon", F.lower(F.trim("horizon")))
+        .where(F.to_date("reference_time") >= F.lit(start))
+    )
+    if end:
+        b = b.where(F.to_date("reference_time") <= F.lit(end))
+    every = None
+    for h, mins in REUNI_KEEP_RUN_EVERY_MIN.items():
+        every = F.when(F.col("horizon") == h, F.lit(mins)) if every is None else every.when(F.col("horizon") == h, F.lit(mins))
+    b = b.where(((F.hour("reference_time") * 60 + F.minute("reference_time")) % every) < 15)
+    b = b.withColumn("_rk", F.row_number().over(Window.partitionBy("site", "horizon", "reference_time").orderBy(F.desc("_ingested_at")))) \
+        .where("_rk = 1").drop("_rk")
+
+    m = F.try_element_at(F.from_json("_raw", REUNI_JSON_SCHEMA), F.upper("site"))
+    runs = b.select("site", "horizon", "reference_time", F.col("_source").alias("raw_source"), m.alias("m"))
+
+    def sorted_entries(var):
+        return F.array_sort(F.map_entries(F.try_element_at("m", F.lit(var))))
+
+    runs = runs.withColumn("_times", F.transform(sorted_entries("ghi"), lambda e: e["key"])).withColumn("_n", F.size("_times")).where("_n > 0")
+    for k, v in REUNI_VARS.items():
+        ent = sorted_entries(k)
+        runs = runs.withColumn(v, F.when(F.size(ent) == F.col("_n"), F.transform(ent, lambda e: e["value"]))
+                               .otherwise(F.array_repeat(F.lit(None).cast("double"), F.col("_n"))))
+    z = runs.select("site", "horizon", "reference_time", "raw_source", F.explode(F.arrays_zip("_times", *REUNI_VARS.values())).alias("z"))
+    out = z.select("site", "horizon", "reference_time", "raw_source",
+                   F.to_timestamp(F.col("z._times"), "yyyy-MM-dd'T'HH:mm:ssXXX").alias("period_end"),
+                   *[F.col(f"z.{v}").alias(v) for v in REUNI_VARS.values()])
+
+    # Power unit, judged on one recent day-ahead run (Bronze sends kW)
+    sample = b.where("horizon = 'dayahead'").orderBy(F.desc("reference_time")).limit(1)
+    sample_max = sample.select(F.explode(F.map_values(F.try_element_at(
+        F.try_element_at(F.from_json("_raw", REUNI_JSON_SCHEMA), F.upper("site")), F.lit("power")))).alias("v")).agg(F.max("v")).first()[0]
+    scale = power_scale_to_mw(sample_max)
+    for c in REUNI_POWER_COLS:
+        out = out.withColumn(c, F.col(c) * scale)
+    return (
+        out.withColumn("gti_poa", F.when(F.col("site") == "pv1", (F.col("gti_east") + F.col("gti_west")) / 2).otherwise(F.col("gti")))
+        .withColumn("lead_min", (F.unix_timestamp("period_end") - F.unix_timestamp("reference_time")) / 60)
+        .where("lead_min > 0")
+    )
