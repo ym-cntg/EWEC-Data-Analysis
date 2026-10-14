@@ -17,7 +17,7 @@ Inputs (features): only what is known at the origin       Answer (label): actual
 
 | | Source | Notes |
 |---|---|---|
-| **Label** | `ewec_dev_powerops.bronze.power_contango_minute_pv` | 1-min actual MW, cleaned (corrupt values removed, column swap of Mar 2026 fixed), averaged to 5 min, UTC |
+| **Label** | `ewec_dev_powerops.bronze.power_contango_minute_pv` | **PV1: actual MW; PV2: `Pv2_AVL` (available power)**. 1-min, cleaned (corrupt values removed, Mar 2026 column swap fixed), averaged to 5 min, UTC |
 | **Features** | `ewec_dev_reuniwatt.bronze.solar_forecast_raw` | Reuniwatt forecasts: new run every 15 min, values every 5 min, Jan 2024 → now, PV1/PV2 × intraday / day-ahead / week-ahead |
 
 One feature table per product (intraday, day-ahead, week-ahead); one row per **plant × origin × 5-min target**.
