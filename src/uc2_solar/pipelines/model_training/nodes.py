@@ -60,6 +60,9 @@ def train_models(spark, model_input: DataFrame, mt: dict, run: dict, product_cfg
     group_cols = (["origin_hour_gulf"] if mt["split_by_origin_hour"] else []) + ["step"]
     label = mt["label"]
     print(f"    {len(feats)} features; groups by {group_cols}")
+    # Databricks turns MLflow autologging on by default: it would create one run per fitted model (~1,500 runs).
+    # We log one run per site × candidate ourselves, so switch it off.
+    mlflow.autolog(disable=True)
     mlflow.set_experiment(_experiment_path(spark, mt["mlflow"]["experiment"]))
     spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
 
