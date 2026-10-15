@@ -1,4 +1,5 @@
-"""Evaluation nodes: test-set metrics per site × model (overall, by forecast time, by lead hour) and a text report."""
+"""Evaluation nodes: test-set metrics per site × model (overall, by forecast time, by lead hour) and a text report.
+Scored on daytime-window slots (where models exist) with usable labels; also reports sun-up slots outside the window."""
 from datetime import datetime
 
 import pandas as pd
@@ -9,7 +10,8 @@ from ...metrics import score
 
 def evaluate(spark, predictions: DataFrame, ev: dict, run: dict):
     pdf = predictions.toPandas()
-    day = pdf[pdf["is_day"] & pdf["label_ok"]].copy()
+    day = pdf[pdf["in_window"] & pdf["label_ok"]].copy()
+    outside = pdf[pdf["is_day"] & ~pdf["in_window"] & pdf["label_ok"]]
     day["lead_hour"] = ((day["lead_min"] - 1) // 60 + 1).astype(int)
     share = ev["mape_min_target_share"]
 
@@ -31,7 +33,9 @@ def evaluate(spark, predictions: DataFrame, ev: dict, run: dict):
     test_from, test_to = pdf["origin"].min(), pdf["origin"].max()
     report = "\n\n".join([
         f"# UC2 Solar — {run['product']} — evaluation ({datetime.utcnow():%Y-%m-%d %H:%M} UTC)",
-        f"Test origins: {test_from} → {test_to}. Daytime rows with usable labels. MAPE only where target > {int(share * 100)}% of capacity.",
+        f"Test origins: {test_from} → {test_to}. Scored on daytime-window slots with usable labels. MAPE only where target > {int(share * 100)}% of capacity.",
+        f"Sun-up slots OUTSIDE the daytime window (forecast forced to 0): {len(outside)} rows, average actual "
+        f"{outside['label_target_mw'].mean():.1f} MW. Large values mean the window cuts off real production (set daytime.mode: sun).",
         "## Overall (lower is better)\n" + fmt(summary),
         "## By forecast time (Gulf hour)\n" + fmt(by_origin.sort_values(["site", "origin_hour_gulf", "mape_pct"])),
         "## By lead hour\n" + fmt(by_lead_hour.sort_values(["site", "lead_hour", "model"])),

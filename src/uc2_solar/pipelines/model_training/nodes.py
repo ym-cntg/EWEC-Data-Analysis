@@ -1,7 +1,7 @@
 """Model training nodes: one model per (origin hour ×) forecast step × plant × candidate, logged to MLflow.
 
-Label: target ÷ capacity. Training rows: label_ok (night kept for the `all_rows` candidate; `daytime_only` uses is_day only
-and predicts 0 at night). Split: the last `holdout_months` of origins are the test set.
+Label: target ÷ capacity. Only daytime slots get models (`model_training.daytime`: fixed Gulf hours or sun up);
+outside that window the forecast is 0. Split: the last `holdout_months` of origins are the test set.
 """
 import pickle
 import tempfile
@@ -47,6 +47,16 @@ def _make_model(model_cfg: dict):
                                          learning_rate=model_cfg["params"].get("learning_rate", 0.05))
 
 
+def in_daytime_window(pdf: pd.DataFrame, daytime: dict) -> pd.Series:
+    """True for target slots that get a model. clock: period end in (start, end] Gulf hours; sun: sun up."""
+    if daytime["mode"] == "sun":
+        return pdf["is_day"].astype(bool)
+    g = pd.to_datetime(pdf["period_end"]) + pd.Timedelta(hours=4)
+    hour = g.dt.hour + g.dt.minute / 60
+    hour = hour.where(hour > 0, 24.0)  # a period ending at midnight belongs to the previous day
+    return (hour > daytime["start_hour_gulf"]) & (hour <= daytime["end_hour_gulf"])
+
+
 def _experiment_path(spark, name: str) -> str:
     user = spark.sql("SELECT current_user()").first()[0]
     return f"/Users/{user}/{name}"
@@ -70,12 +80,13 @@ def train_models(spark, model_input: DataFrame, mt: dict, run: dict, product_cfg
     for site in [r[0] for r in model_input.select("site").distinct().orderBy("site").collect()]:
         pdf = model_input.where(F.col("site") == site).select(*set(KEY_COLS + feats + LABEL_COLS + ["split", "capacity_mw", "is_day", "f_power_mw"])).toPandas()
         pdf[feats] = pdf[feats].astype("float32")
+        pdf["in_window"] = in_daytime_window(pdf, mt["daytime"])
         train_all, test_all = pdf[pdf["split"] == "train"], pdf[pdf["split"] == "test"]
-        base = test_all[KEY_COLS + ["is_day", "capacity_mw", "label_target_mw", "label_ok"]].copy()
+        base = test_all[KEY_COLS + ["is_day", "in_window", "capacity_mw", "label_target_mw", "label_ok"]].copy()
         out.append(base.assign(model="reuniwatt_baseline", pred_mw=test_all["f_power_mw"].values))
 
         for cand, ccfg in mt["candidates"].items():
-            tr = train_all[train_all["is_day"]] if ccfg["daytime_only"] else train_all
+            tr = train_all[train_all["in_window"]]
             models, preds, importances = {}, [], []
             for key, g in tr.groupby(group_cols):
                 if len(g) < mt["min_train_rows"]:
@@ -89,19 +100,20 @@ def train_models(spark, model_input: DataFrame, mt: dict, run: dict, product_cfg
                 k = key if isinstance(key, tuple) else (key,)
                 p = models[k].predict(g[feats]) if k in models else np.zeros(len(g))
                 p = np.clip(p, 0, 1.05)
-                if ccfg["daytime_only"]:
-                    p = np.where(g["is_day"].values, p, 0.0)
+                p = np.where(g["in_window"].values, p, 0.0)  # no model outside the daytime window -> 0
                 preds.append(pd.Series(p * g["capacity_mw"].values, index=g.index))
             pred = pd.concat(preds) if preds else pd.Series(dtype=float)
             res = base.assign(model=cand, pred_mw=pred.reindex(base.index).values)
             out.append(res)
 
-            day = res[res["is_day"] & res["label_ok"]]
+            day = res[res["in_window"] & res["label_ok"]]
             m_all = score(day, "pred_mw", "label_target_mw", "capacity_mw", ev["mape_min_target_share"])
             b_all = score(day.assign(pred_mw=test_all.loc[day.index, "f_power_mw"].values), "pred_mw", "label_target_mw", "capacity_mw", ev["mape_min_target_share"])
             with mlflow.start_run(run_name=f"{run['product']}_{site}_{cand}"):
                 mlflow.log_params({"product": run["product"], "site": site, "candidate": cand, "n_models": len(models),
                                    "n_features": len(feats), "group_by": ",".join(group_cols), "model_type": mt["model"]["type"],
+                                   "daytime_mode": mt["daytime"]["mode"],
+                                   "daytime_hours": f"{mt['daytime'].get('start_hour_gulf')}-{mt['daytime'].get('end_hour_gulf')}",
                                    "train_rows": len(tr), "test_rows": len(test_all), **{f"m_{k}": v for k, v in mt["model"]["params"].items()}})
                 mlflow.log_metrics({f"test_{k}": v for k, v in m_all.items() if v == v} | {f"baseline_{k}": v for k, v in b_all.items() if v == v})
                 for s_val, gs in day.groupby("step"):
@@ -123,4 +135,5 @@ def train_models(spark, model_input: DataFrame, mt: dict, run: dict, product_cfg
     preds = pd.concat(out, ignore_index=True)
     preds["is_day"] = preds["is_day"].astype(bool)
     preds["label_ok"] = preds["label_ok"].astype(bool)
+    preds["in_window"] = preds["in_window"].astype(bool)
     return spark.createDataFrame(preds)

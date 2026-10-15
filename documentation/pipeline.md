@@ -39,7 +39,7 @@ Nodes are pure functions; all wiring (inputs → outputs) lives in each `pipelin
 | | `feat_origins` | Forecast times (09:00, 15:00 Gulf) × sites |
 | | `feat_table` | Site × origin × target: all features + label |
 | 05 model input | `model_input` | Usable labels, train / test split (last 3 months = test) |
-| 07 model output | `predictions` | Test predictions: `all_rows`, `daytime_only`, `reuniwatt_baseline` |
+| 07 model output | `predictions` | Test predictions: `daytime` model and `reuniwatt_baseline` |
 | 08 reporting | `metrics_summary`, `metrics_by_step`, `report` | Metrics tables; text report in `notebooks/pipeline/results/` |
 
 All tables are written to `run.output_schema` with the prefix `uc2_` (writes to bronze / silver / gold are refused).
@@ -57,7 +57,7 @@ All tables are written to `run.output_schema` with the prefix `uc2_` (writes to 
 | | `assemble_features` | As-of joins (no look-ahead), **across-runs** and **across-horizons** lags, computed features |
 | | `add_labels` | Attach target at each target time |
 | model_training | `build_model_input` | Keep usable labels; train / test split |
-| | `train_models` | One LightGBM per origin hour × step × site × candidate; MLflow logging; test predictions |
+| | `train_models` | One LightGBM per origin hour × daytime step × site; MLflow logging; test predictions |
 | evaluation | `evaluate` | Metrics overall, by forecast time, by lead hour, by step; report |
 
 ## Features (Reuniwatt + computed only)
@@ -76,9 +76,10 @@ No plant-sensor or past-target features in this version.
 
 ## Models
 
-- **Grain:** one model per **forecast time (09:00 / 15:00) × step (1–96) × plant**, i.e. 384 models per candidate.
+- **Daytime only:** models exist only for target slots inside the daytime window (`model_training.daytime`). Default: **Gulf 06:00–18:00** (`mode: clock`); `mode: sun` uses sun-up instead (covers summer evenings until ~19:10). Outside the window the forecast is 0. The report shows how much real production falls outside the window.
+- **Grain:** one model per **forecast time (09:00 / 15:00) × daytime step × plant**, i.e. ~48 steps per forecast time (≈ 192 models per plant).
 - **Label:** target ÷ capacity. Predictions are clipped to 0–1.05 and converted back to MW.
-- **Candidates:** `all_rows` (night included) and `daytime_only` (trained on daylight, predicts 0 at night).
+- **Scoring:** daytime-window slots with usable labels; Reuniwatt baseline scored on the same rows.
 - **Split:** last 3 months of origins = test.
 - **MLflow:** experiment `/Users/<you>/uc2_solar`, one run per product × site × candidate.
   - Logged: parameters, test and baseline metrics, MAPE by step (as a metric series), feature importance, and all models as `models.pkl`.

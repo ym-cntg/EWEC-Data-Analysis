@@ -74,9 +74,12 @@ model_training:
   holdout_months: 3                # last 3 months of origins = test set
   split_by_origin_hour: true       # separate models for the 09:00 and 15:00 forecasts
   min_train_rows: 100
+  daytime:                         # models exist only for daytime target slots; forecast = 0 outside
+    mode: clock                    # clock = fixed Gulf hours below | sun = whenever the sun is up (seasonal)
+    start_hour_gulf: 6             # slot counts if its period END is after 06:00 ...
+    end_hour_gulf: 18              # ... and at or before 18:00 (Gulf time)
   candidates:
-    all_rows: {daytime_only: false}
-    daytime_only: {daytime_only: true}
+    daytime: {}                    # one candidate; add more here to compare variants
   model:
     type: lightgbm                 # falls back to sklearn HistGradientBoosting if LightGBM is missing
     params:
