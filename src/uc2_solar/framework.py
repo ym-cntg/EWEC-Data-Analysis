@@ -118,7 +118,18 @@ def run_pipeline(pipeline: Pipeline, catalog: DataCatalog, params: dict, from_no
                 args.append(_param(params, inp[len("params:"):]))
             else:
                 args.append(catalog.load(inp))
-        result = node.func(*args)
+        try:
+            result = node.func(*args)
+        except Exception as e:
+            import traceback
+            msg = (f"FAILED at node '{node.name}' (pipeline '{pipeline.name}')\n"
+                   f"Resume with from_node = {node.name}\n\n{type(e).__name__}: {e}\n\n{traceback.format_exc()}")
+            err_path = catalog.base_dir / "results" / "last_error.txt"
+            err_path.parent.mkdir(parents=True, exist_ok=True)
+            err_path.write_text(msg)
+            print(f"  ✗ FAILED at node '{node.name}': {type(e).__name__}: {str(e)[:500]}")
+            print(f"    Full error saved to {err_path.resolve()}; commit & push it to share.")
+            raise
         outs = node.output_list
         if len(outs) == 1:
             catalog.save(outs[0], result)
