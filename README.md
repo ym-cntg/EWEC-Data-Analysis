@@ -19,3 +19,7 @@ Databricks source-format notebooks. Import them via Repos, then run each one on 
 | `06_dq_reuniwatt_power` | `ewec_dev_reuniwatt.silver.fact_solar_power_forecast`: forecast-run structure, p10/p50/p90 band, adjustments vs. `power_mw_original`, `quality_flag`, accuracy vs. PV, consistency with irradiance |
 
 All notebooks are read-only. To persist summary tables, set the `scratch_schema` widget to a personal schema. Writes to `bronze`/`silver`/`gold` are refused.
+
+## Forecasting pipeline (`conf/`, `src/uc2_solar/`, `notebooks/pipeline/`)
+
+Kedro-style pipeline: raw Bronze → cleaned data → features (Reuniwatt + computed, with lag families) → one LightGBM per forecast time × step × plant → evaluation vs the Reuniwatt baseline, logged to MLflow. Run `notebooks/pipeline/00_run_all`. Details: `documentation/pipeline.md`.

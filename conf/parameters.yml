@@ -1,0 +1,96 @@
+# UC2 Solar pipeline parameters.
+# Every node reads its settings from here; change behaviour here, not in code.
+
+run:
+  output_schema: ewec_dev_powerops.scratch_yash   # all pipeline tables are written here
+  start_date: "2024-01-23"                         # first forecast origin date (Gulf)
+  end_date: ""                                     # last origin date; blank = yesterday
+  product: dayahead_15min                          # key in `products` below
+
+sites:
+  # PV1 = small plant (east/west panels), PV2 = large plant. Capacities / coordinates are estimates: confirm.
+  pv1:
+    capacity_mw: 950
+    lat: 24.45
+    lon: 54.6
+    target: actual                 # target = actual MW
+    bronze_col_before_swap: PV2_MW # Bronze MW columns were mislabelled before ~Mar 2026
+    bronze_col_after_swap: PV1_MW
+  pv2:
+    capacity_mw: 1650
+    lat: 24.45
+    lon: 54.6
+    target: available              # target = Pv2_AVL (available power)
+    bronze_col_before_swap: PV1_MW
+    bronze_col_after_swap: PV2_MW
+
+data_engineering:
+  gulf_offset_h: 4                 # Gulf Standard Time = UTC+4
+  base_step_min: 5
+  history_days_before_start: 3     # extra history read before start_date
+  pv_sentinel_abs_mw: 5000         # |MW| above this is corrupt
+  night_neg_floor_mw: -10          # -10..0 MW -> 0 (self-consumption); below -> invalid
+  avl_max_mw: 2000
+  swap_date: auto                  # Bronze MW column swap: auto | none | YYYY-MM-DD
+  outage_clearsky_ghi: 200         # sunny if clear-sky GHI above this ...
+  outage_share_of_capacity: 0.01   # ... and target below this share -> suspected outage
+  reuniwatt:
+    horizons: [dayahead, weekahead]
+    keep_run_every_min: {intraday: 15, dayahead: 60, weekahead: 180}
+    max_lead_min: 2880             # week-ahead kept only for its first 2 days (fallback / comparison)
+  broken_run:                      # run forecasts darkness at midday -> not used
+    high_sun_clearsky_ghi: 600
+    dark_share_of_clearsky: 0.2
+    min_high_sun_steps: 6
+    max_dark_share: 0.5
+
+products:
+  dayahead_15min:
+    resolution_min: 15
+    origin_hours_gulf: [9, 15]
+    window_min: 1440
+    latency_min: 15                # a run counts as available 15 min after issue
+    main_horizon: dayahead
+    horizons:
+      dayahead: {prefix: da, max_run_age_min: 360}
+      weekahead: {prefix: wa, max_run_age_min: 1440}
+
+feature_engineering:
+  forecast_vars: [ghi, dni, dhi, bhi, gti_poa, power_mw, power_p10_mw, power_p90_mw]
+  weather_vars: [temp_c, dewpoint_c, humidity_pct, cloud_opacity, clearness_index, pressure_hpa, precip_rate_mmh]
+  around_target:                   # same run, neighbouring steps of the target
+    columns: [ghi, gti_poa, power_mw, csi_ghi]
+    lag_steps: [1, 2, 3]           # earlier steps (15 / 30 / 45 min)
+    lead_steps: [1, 2, 3]          # later steps
+    rolling_half_steps: [2, 4]     # centred windows of ±2 / ±4 steps (±30 / ±60 min): mean and std
+  across_runs:                     # same target from earlier runs of the main horizon
+    columns: [ghi, gti_poa, power_mw]
+    offsets_min: [60, 180, 360]
+  across_horizons:                 # main horizon minus other horizon, same target
+    columns: [ghi, gti_poa, power_mw]
+
+model_training:
+  label: label_target_norm         # target ÷ capacity
+  holdout_months: 3                # last 3 months of origins = test set
+  split_by_origin_hour: true       # separate models for the 09:00 and 15:00 forecasts
+  min_train_rows: 100
+  candidates:
+    all_rows: {daytime_only: false}
+    daytime_only: {daytime_only: true}
+  model:
+    type: lightgbm                 # falls back to sklearn HistGradientBoosting if LightGBM is missing
+    params:
+      n_estimators: 400
+      learning_rate: 0.05
+      num_leaves: 31
+      min_child_samples: 20
+      subsample: 0.8
+      subsample_freq: 1
+      colsample_bytree: 0.8
+      verbose: -1
+  mlflow:
+    experiment: uc2_solar           # created under /Users/<you>/
+    log_models: true
+
+evaluation:
+  mape_min_target_share: 0.10      # MAPE only where target > 10% of capacity

@@ -1,0 +1,95 @@
+# Data catalog: every dataset the pipelines read or write.
+# `{output_schema}` and `{product}` are filled from parameters.yml (run section).
+# Layers follow the Kedro convention: 01_raw → 02_intermediate → 03_primary → 04_feature → 05_model_input → 07_model_output → 08_reporting.
+
+# 01 raw (read only)
+raw_pv_telemetry:
+  type: table
+  table: ewec_dev_powerops.bronze.power_contango_minute_pv
+  layer: 01_raw
+  read_only: true
+
+raw_reuniwatt:
+  type: table
+  table: ewec_dev_reuniwatt.bronze.solar_forecast_raw
+  layer: 01_raw
+  read_only: true
+
+# 02 intermediate
+int_target_5min:
+  type: table
+  table: "{output_schema}.uc2_int_target_5min"
+  layer: 02_intermediate
+  partition_by: [site]
+
+int_reuniwatt_5min:
+  type: table
+  table: "{output_schema}.uc2_int_reuniwatt_5min"
+  layer: 02_intermediate
+  partition_by: [horizon]
+
+int_reuniwatt_run_flags:
+  type: table
+  table: "{output_schema}.uc2_int_reuniwatt_run_flags"
+  layer: 02_intermediate
+
+# 03 primary (product resolution)
+pri_target:
+  type: table
+  table: "{output_schema}.uc2_pri_target_{product}"
+  layer: 03_primary
+  partition_by: [site]
+
+pri_reuniwatt:
+  type: table
+  table: "{output_schema}.uc2_pri_reuniwatt_{product}"
+  layer: 03_primary
+  partition_by: [horizon]
+
+# 04 feature
+feat_reuniwatt_runs:
+  type: table
+  table: "{output_schema}.uc2_feat_reuniwatt_runs_{product}"
+  layer: 04_feature
+  partition_by: [horizon]
+
+feat_origins:
+  type: table
+  table: "{output_schema}.uc2_feat_origins_{product}"
+  layer: 04_feature
+
+feat_table:
+  type: table
+  table: "{output_schema}.uc2_feat_{product}"
+  layer: 04_feature
+  partition_by: [site]
+
+# 05 model input
+model_input:
+  type: table
+  table: "{output_schema}.uc2_model_input_{product}"
+  layer: 05_model_input
+  partition_by: [site]
+
+# 07 model output
+predictions:
+  type: table
+  table: "{output_schema}.uc2_predictions_{product}"
+  layer: 07_model_output
+  partition_by: [site]
+
+# 08 reporting
+metrics_summary:
+  type: table
+  table: "{output_schema}.uc2_metrics_summary_{product}"
+  layer: 08_reporting
+
+metrics_by_step:
+  type: table
+  table: "{output_schema}.uc2_metrics_by_step_{product}"
+  layer: 08_reporting
+
+report:
+  type: text
+  path: "results/report_{product}.txt"   # relative to the running notebook; commit & push to share
+  layer: 08_reporting
