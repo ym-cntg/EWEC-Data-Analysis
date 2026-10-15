@@ -226,8 +226,9 @@ REUNI_POWER_COLS = ["power_mw", "power_p10_mw", "power_p90_mw"]
 REUNI_KEEP_RUN_EVERY_MIN = {"intraday": 15, "dayahead": 60, "weekahead": 180}
 
 
-def reuniwatt_from_bronze(start: str, end: str = "") -> DataFrame:
-    """One row per site × horizon × run × 5-min target, runs issued between start and end (UTC dates)."""
+def reuniwatt_from_bronze(start: str, end: str = "", horizons=None, max_lead_min=None) -> DataFrame:
+    """One row per site × horizon × run × 5-min target, runs issued between start and end (UTC dates).
+    horizons: optional list to keep (e.g. ["dayahead", "weekahead"]); max_lead_min: optional cap on lead time."""
     b = (
         spark.table(REUNI_BRONZE).where(F.col("_source") != "migration_legacy")
         .withColumn("reference_time", F.col("reference_time").cast("timestamp"))
@@ -237,6 +238,8 @@ def reuniwatt_from_bronze(start: str, end: str = "") -> DataFrame:
     )
     if end:
         b = b.where(F.to_date("reference_time") <= F.lit(end))
+    if horizons:
+        b = b.where(F.col("horizon").isin(*horizons))
     every = None
     for h, mins in REUNI_KEEP_RUN_EVERY_MIN.items():
         every = F.when(F.col("horizon") == h, F.lit(mins)) if every is None else every.when(F.col("horizon") == h, F.lit(mins))
@@ -270,5 +273,76 @@ def reuniwatt_from_bronze(start: str, end: str = "") -> DataFrame:
     return (
         out.withColumn("gti_poa", F.when(F.col("site") == "pv1", (F.col("gti_east") + F.col("gti_west")) / 2).otherwise(F.col("gti")))
         .withColumn("lead_min", (F.unix_timestamp("period_end") - F.unix_timestamp("reference_time")) / 60)
-        .where("lead_min > 0")
+        .where((F.col("lead_min") > 0) & (F.col("lead_min") <= F.lit(max_lead_min if max_lead_min else 10 ** 9)))
+    )
+
+
+def flag_broken_runs(fc: DataFrame) -> DataFrame:
+    """Per run (site, horizon, reference_time): broken if, when the sun is high (clear-sky GHI > 600),
+    more than half of the forecast GHI values are below 20% of clear-sky. Catches feed glitches like 3 Jul 2026."""
+    x = add_solar(fc.select("site", "horizon", "reference_time", "period_end", "ghi"), "period_end")
+    high = F.col("clearsky_ghi") > 600
+    return (
+        x.groupBy("site", "horizon", "reference_time").agg(
+            F.sum(high.cast("int")).alias("n_high_sun"),
+            F.sum((high & (F.col("ghi") < 0.2 * F.col("clearsky_ghi"))).cast("int")).alias("n_dark"),
+        )
+        .withColumn("run_broken", (F.col("n_high_sun") >= 6) & (F.col("n_dark") > 0.5 * F.col("n_high_sun")))
+    )
+
+# COMMAND ----------
+
+# MAGIC %md ## Plant sensors + target, 5-minute
+# MAGIC One row per site × 5-min period (UTC, period end): cleaned plant sensors (`m_*`), target (`target_mw`: PV1 actual MW, PV2 `Pv2_AVL`), actual MW, sun position and label status.
+
+# COMMAND ----------
+
+_NULL = F.lit(None).cast("double")
+SENSOR_CLEAN_RULES = {
+    "irradiance": (["PV1_GHI", "PV1_ArrayRadiance_east", "PV1_ArrayRadiance_west", "PV2_GHI", "PV2_ArrayRadiance"],
+                   lambda v: F.when(v < -20, _NULL).when(v < 0, F.lit(0.0)).when(v > 1500, _NULL).otherwise(v)),
+    "temperature": (["PV1_Temp", "PV2_Outdoor_Temp"], lambda v: F.when((v <= 0) | (v > 60), _NULL).otherwise(v)),
+    "humidity": (["PV1_HumidityPer", "PV2_HumidityPer"], lambda v: F.when((v <= 0) | (v > 100), _NULL).otherwise(v)),
+    "available": (["Pv2_AVL"], lambda v: F.when((v < 0) | (v > 2000), _NULL).otherwise(v)),
+}
+
+
+def build_sensor_target_5min(start: str, end: str = "") -> DataFrame:
+    swap_day = detect_pv_swap_date()
+    raw = spark.table(PV_BRONZE).withColumn("ts_gulf", F.col("DateTime").cast("timestamp")).where("ts_gulf IS NOT NULL")
+    raw = raw.where(F.to_date("ts_gulf") >= F.date_sub(F.lit(start), 1))
+    if end:
+        raw = raw.where(F.to_date("ts_gulf") <= F.date_add(F.lit(end), 1))
+    for _, (cols, rule) in SENSOR_CLEAN_RULES.items():
+        for c in cols:
+            raw = raw.withColumn(f"{c}__c", rule(F.col(c).cast("double")))
+
+    def c(name):
+        return F.col(f"{name}__c")
+
+    per_site = {
+        "pv1": dict(m_ghi=c("PV1_GHI"), m_gti_poa=(c("PV1_ArrayRadiance_east") + c("PV1_ArrayRadiance_west")) / 2,
+                    m_temp_c=c("PV1_Temp"), m_humidity_pct=c("PV1_HumidityPer"),
+                    actual_mw=site_mw("pv1", swap_day), target_mw=site_mw("pv1", swap_day)),
+        "pv2": dict(m_ghi=c("PV2_GHI"), m_gti_poa=c("PV2_ArrayRadiance"),
+                    m_temp_c=c("PV2_Outdoor_Temp"), m_humidity_pct=c("PV2_HumidityPer"),
+                    actual_mw=site_mw("pv2", swap_day), target_mw=c("Pv2_AVL")),
+    }
+    cols = list(per_site["pv1"].keys())
+    long = reduce(DataFrame.unionByName, [raw.select(F.lit(s).alias("site"), "ts_gulf", *[e.alias(k) for k, e in ex.items()])
+                                          for s, ex in per_site.items()])
+    agg = (long.withColumn("period_end", ceil_to(gulf_to_utc("ts_gulf"), STEP_MIN))
+           .groupBy("site", "period_end").agg(*[F.avg(k).alias(k) for k in cols], F.count("target_mw").alias("n_target_min")))
+    agg = agg.where(F.to_date("period_end") >= F.lit(start))
+    if end:
+        agg = agg.where(F.to_date("period_end") <= F.lit(end))
+    cap = site_value("capacity_mw")
+    t = add_solar(agg, "period_end")
+    status = (F.when(F.col("sun_zenith") > 95, "night").when(F.col("n_target_min") == 0, "missing")
+              .when((F.col("clearsky_ghi") > 200) & (F.col("target_mw") < 0.01 * cap), "suspected_outage").otherwise("ok"))
+    return (
+        t.withColumn("status", status)
+        .withColumn("target_mw", F.when(F.col("status") == "night", F.coalesce("target_mw", F.lit(0.0))).otherwise(F.col("target_mw")))
+        .withColumn("capacity_mw", cap)
+        .withColumn("label_ok", F.col("status").isin("ok", "night"))
     )
