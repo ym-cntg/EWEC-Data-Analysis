@@ -12,7 +12,7 @@ Lag families:
 from pyspark.sql import DataFrame, Window
 from pyspark.sql import functions as F
 
-from ...spark_utils import add_calendar, add_solar, asof_runs, shift_minutes, site_value
+from ...spark_utils import add_calendar, add_solar, asof_runs, shift_minutes, site_value, utc_to_gulf
 
 RUN_KEY = ["site", "horizon", "reference_time", "period_end"]
 
@@ -128,3 +128,105 @@ def add_labels(features: DataFrame, pri_target: DataFrame, product_cfg: dict) ->
     any_run = F.coalesce(*[F.col(c) for c in run_cols]).isNotNull()
     print(f"    main-horizon prefix: {main_p}")
     return out.where(any_run)
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Actual-output history (prefix act_): only data up to the origin. Phase 1's strongest intraday features.
+# ---------------------------------------------------------------------------------------------------------------------
+
+def add_actual_history(features: DataFrame, origins: DataFrame, pri_target: DataFrame, feat_runs: DataFrame,
+                       product_cfg: dict, fe: dict, sites: dict) -> DataFrame:
+    """Recent actual output at the origin (lags, rolling stats, change), Reuniwatt's recent error, yesterday's day,
+    and the same clock slot on previous days. All values ÷ capacity. Same-slot values are blanked if not yet known at the origin."""
+    cfg = fe["actual_history"]
+    if not cfg.get("enabled", True):
+        return features
+    res = product_cfg["resolution_min"]
+    main = product_cfg["main_horizon"]
+    cap = site_value(sites, "capacity_mw")
+
+    nc = (feat_runs.where(F.col("horizon") == main)
+          .withColumn("_rk", F.row_number().over(Window.partitionBy("site", "period_end").orderBy(F.desc("reference_time"))))
+          .where("_rk = 1").select("site", "period_end", (F.col("power_mw") / cap).alias("nc")))
+    s = (pri_target.select("site", "period_end", F.when(F.col("label_ok"), F.col("label_target_norm")).alias("y"))
+         .join(nc, ["site", "period_end"], "left"))
+
+    # 1) At the origin: lags
+    o = origins.select("site", "origin")
+    for k in cfg["lag_minutes"]:
+        o = o.join(s.select("site", shift_minutes("period_end", k).alias("origin"), F.col("y").alias(f"act_lag_{k}m")), ["site", "origin"], "left")
+
+    # 2) At the origin: rolling stats and Reuniwatt's recent error ratio (actual ÷ forecast)
+    w = Window.partitionBy("site").orderBy(F.unix_timestamp("period_end"))
+    roll = s
+    for m in cfg["rolling_minutes"]:
+        fr = w.rangeBetween(-(m - res) * 60, 0)
+        roll = (roll.withColumn(f"act_mean_{m}m", F.avg("y").over(fr)).withColumn(f"act_std_{m}m", F.stddev("y").over(fr))
+                .withColumn(f"act_min_{m}m", F.min("y").over(fr)).withColumn(f"act_max_{m}m", F.max("y").over(fr)))
+    both = F.col("y").isNotNull() & (F.col("nc") > 0.01)
+    for m in cfg["error_minutes"]:
+        fr = w.rangeBetween(-(m - res) * 60, 0)
+        num, den = F.sum(F.when(both, F.col("y"))).over(fr), F.sum(F.when(both, F.col("nc"))).over(fr)
+        roll = roll.withColumn(f"act_err_ratio_{m}m", F.when(den > 0.05, F.least(num / den, F.lit(2.0))))
+    act_cols = [c for c in roll.columns if c.startswith("act_")]
+    o = o.join(roll.select("site", F.col("period_end").alias("origin"), *act_cols), ["site", "origin"], "left")
+    lags = cfg["lag_minutes"]
+    if 0 in lags and 15 in lags:
+        o = o.withColumn("act_change_15m", F.col("act_lag_0m") - F.col("act_lag_15m"))
+    if 0 in lags and 60 in lags:
+        o = o.withColumn("act_change_60m", F.col("act_lag_0m") - F.col("act_lag_60m"))
+    if 60 in cfg["rolling_minutes"] and 180 in cfg["rolling_minutes"]:
+        o = o.withColumn("act_macd", F.col("act_mean_60m") - F.col("act_mean_180m"))
+
+    # 3) Yesterday (Gulf day before the origin): actual ÷ forecast energy and mean output
+    gday = F.to_date(utc_to_gulf("period_end"))
+    daily = (s.where(both).groupBy("site", gday.alias("d"))
+             .agg((F.sum("y") / F.sum("nc")).alias("act_yday_day_ratio"), F.avg("y").alias("act_yday_mean"))
+             .select("site", F.date_add("d", 1).alias("origin_gulf_day"), "act_yday_day_ratio", "act_yday_mean"))
+    o = o.withColumn("origin_gulf_day", F.to_date(utc_to_gulf("origin"))).join(daily, ["site", "origin_gulf_day"], "left").drop("origin_gulf_day")
+
+    out = features.join(o, ["site", "origin"], "left")
+
+    # 4) Same clock slot on previous days (blanked if that slot ends after the origin)
+    for d in cfg["same_slot_days"]:
+        prev = s.select("site", shift_minutes("period_end", d * 1440).alias("period_end"),
+                        F.col("y").alias(f"act_slot_d{d}"), F.col("nc").alias(f"_nc_slot_d{d}"))
+        out = out.join(prev, ["site", "period_end"], "left")
+        known = shift_minutes("period_end", -d * 1440) <= F.col("origin")
+        out = (out.withColumn(f"act_slot_d{d}", F.when(known, F.col(f"act_slot_d{d}")))
+               .withColumn(f"act_slot_err_d{d}", F.when(known, F.col(f"act_slot_d{d}") - F.col(f"_nc_slot_d{d}")))
+               .drop(f"_nc_slot_d{d}"))
+    return out
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Extra Reuniwatt-derived features: calendar (cal_), interactions (ix_), daily summaries of the forecast (day_)
+# ---------------------------------------------------------------------------------------------------------------------
+
+def add_extra_features(features: DataFrame, product_cfg: dict, fe: dict, de: dict) -> DataFrame:
+    if not fe.get("extra", {}).get("enabled", True):
+        return features
+    pi = 3.141592653589793
+    mp = product_cfg["horizons"][product_cfg["main_horizon"]]["prefix"]
+    g = utc_to_gulf("period_end", de["gulf_offset_h"])
+    month = F.month(g)
+    cs_ok = F.col("clearsky_ghi") > 50
+    gap = (F.col("f_power_p90_mw") - F.col("f_power_mw"))
+    low = (F.col("f_power_mw") - F.col("f_power_p10_mw"))
+    x = (features
+         .withColumn("cal_month_sin", F.sin(2 * pi * month / 12)).withColumn("cal_month_cos", F.cos(2 * pi * month / 12))
+         .withColumn("ix_csi_x_cloud", F.col("f_csi_ghi") * F.col(f"{mp}_cloud_opacity"))
+         .withColumn("ix_ghi_x_temp", F.col("f_ghi") * F.col(f"{mp}_temp_c") / 1000)
+         .withColumn("ix_elev_x_csi", F.col("sun_elevation") * F.col("f_csi_ghi"))
+         .withColumn("ix_gti_cs_ratio", F.when(cs_ok, F.col("f_gti_poa") / F.col("clearsky_ghi")))
+         .withColumn("ix_power_cs_ratio", F.when(cs_ok, F.col("power_norm") / (F.col("clearsky_ghi") / 1000)))
+         .withColumn("ix_clip_distance", 1 - F.col("power_norm"))
+         .withColumn("ix_band_skew", F.when((low > 1) & (gap > 1), gap / low))
+         .withColumn("ix_derate_x_gti", F.col("temp_derate") * F.col("f_gti_poa")))
+    # Daily summaries of the forecast for the target's Gulf day (same origin)
+    w = Window.partitionBy("site", "origin", F.to_date(g))
+    res_h = product_cfg["resolution_min"] / 60
+    x = (x.withColumn("day_fc_energy_norm", F.sum("power_norm").over(w) * res_h)
+         .withColumn("day_fc_csi_mean", F.avg(F.when(cs_ok, F.col("f_csi_ghi"))).over(w))
+         .withColumn("day_fc_max_ramp_norm", F.max(F.abs(F.col(f"{mp}_power_mw_d1"))).over(w) / F.col("capacity_mw")))
+    return x

@@ -8,19 +8,20 @@ run:
   product: dayahead_15min                          # key in `products` below
 
 sites:
-  # PV1 = small plant (east/west panels), PV2 = large plant. Capacities / coordinates are estimates: confirm.
+  # pv1 = small plant (~935 MW, east/west panels), pv2 = large plant (~1,584 MW). Capacities from the Phase 1 design doc.
+  # NOTE: the Phase 1 doc names them the other way round (its PV1 = the large plant). We keep Reuniwatt / sensor naming.
   pv1:
-    capacity_mw: 950
+    capacity_mw: 935
     lat: 24.45
     lon: 54.6
     target: actual                 # target = actual MW
     bronze_col_before_swap: PV2_MW # Bronze MW columns were mislabelled before ~Mar 2026
     bronze_col_after_swap: PV1_MW
   pv2:
-    capacity_mw: 1650
+    capacity_mw: 1584
     lat: 24.45
     lon: 54.6
-    target: available              # target = Pv2_AVL (available power)
+    target: actual                 # target = actual MW (agreed 2026-10-17; Pv2_AVL no longer used)
     bronze_col_before_swap: PV1_MW
     bronze_col_after_swap: PV2_MW
 
@@ -68,10 +69,22 @@ feature_engineering:
     offsets_min: [60, 180, 360]
   across_horizons:                 # main horizon minus other horizon, same target
     columns: [ghi, gti_poa, power_mw]
+  actual_history:                  # act_*: actual output up to the origin (÷ capacity)
+    enabled: true
+    lag_minutes: [0, 15, 30, 45, 60, 120, 180]
+    rolling_minutes: [60, 180]     # mean / std / min / max over the last 1 h and 3 h
+    error_minutes: [60, 180]       # actual ÷ Reuniwatt over the last 1 h and 3 h
+    same_slot_days: [1, 2]         # same clock slot 1 and 2 days earlier (only if known at the origin)
+  extra:                           # cal_* month, ix_* interactions, day_* daily summaries of the forecast
+    enabled: true
 
 model_training:
   label: label_target_norm         # target ÷ capacity
-  holdout_months: 3                # last 3 months of origins = test set
+  splits:                          # each split trains on origins BEFORE its test window
+    phase1_window: {test_start: "2025-09-01", test_end: "2025-11-19"}   # Phase 1 backfill window (like-for-like)
+    recent_3m: {holdout_months: 3}                                      # last 3 months
+  exclude_feature_prefixes: []     # switch feature groups off, e.g. [act_, ix_, day_, cal_, xh_, da_r]
+  recency_half_life_days: null     # e.g. 90 to weight recent days more (Phase 1 used ~17 days); null = off
   split_by_origin_hour: true       # separate models for the 09:00 and 15:00 forecasts
   min_train_rows: 100
   daytime:                         # models exist only for daytime target slots; forecast = 0 outside
@@ -96,4 +109,4 @@ model_training:
     log_models: true
 
 evaluation:
-  mape_min_target_share: 0.10      # MAPE only where target > 10% of capacity
+  mape_min_actual_mw: 150          # MAPE only where actual > 150 MW (Phase 1 rule, agreed)

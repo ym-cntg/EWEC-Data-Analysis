@@ -31,7 +31,7 @@ Nodes are pure functions; all wiring (inputs → outputs) lives in each `pipelin
 | Layer | Dataset | Content |
 |---|---|---|
 | 01 raw | `raw_pv_telemetry`, `raw_reuniwatt` | Bronze tables (read only) |
-| 02 intermediate | `int_target_5min` | Target 5-min UTC: PV1 actual MW, PV2 `Pv2_AVL`; status, `label_ok` |
+| 02 intermediate | `int_target_5min` | Target 5-min UTC: actual MW for both plants; status, `label_ok` |
 | | `int_reuniwatt_5min` | Reuniwatt runs unpacked from JSON, power in MW (day-ahead hourly, week-ahead 3-hourly ≤ 2 days) |
 | | `int_reuniwatt_run_flags` | Broken runs (darkness forecast at midday) |
 | 03 primary | `pri_target`, `pri_reuniwatt` | Resampled to the product resolution (15 min); broken runs removed |
@@ -48,13 +48,15 @@ All tables are written to `run.output_schema` with the prefix `uc2_` (writes to 
 
 | Pipeline | Node | Does |
 |---|---|---|
-| data_engineering | `clean_target` | Clean PV, fix the Mar 2026 column swap, PV2 = `Pv2_AVL`, Gulf → UTC, 5-min, status |
+| data_engineering | `clean_target` | Clean PV, fix the Mar 2026 column swap, Gulf → UTC, 5-min, status (target = actual MW) |
 | | `unpack_reuniwatt` | Unpack Bronze JSON, thin runs, kW → MW, `gti_poa` |
 | | `flag_broken_runs` | Mark runs forecasting darkness when the sun is high |
 | | `resample_reuniwatt` / `resample_target` | Average to 15 min; label usable only if all 5-min parts are |
 | feature_engineering | `reuniwatt_run_features` | Clear-sky ratios + **around-target** lags per run |
 | | `build_origins` | 09:00 and 15:00 Gulf each day |
 | | `assemble_features` | As-of joins (no look-ahead), **across-runs** and **across-horizons** lags, computed features |
+| | `add_actual_history` | `act_*`: actual output up to the origin (lags, 1 h / 3 h stats, change, MACD), Reuniwatt's recent error, yesterday, same slot 1–2 days earlier |
+| | `add_extra_features` | `cal_*` month, `ix_*` interactions (csi × cloud, GHI × temp, elevation × csi, GTI / clear-sky, band skew, clip distance), `day_*` daily forecast summaries |
 | | `add_labels` | Attach target at each target time |
 | model_training | `build_model_input` | Keep usable labels; train / test split |
 | | `train_models` | One LightGBM per origin hour × daytime step × site; MLflow logging; test predictions |
@@ -72,15 +74,20 @@ All tables are written to `run.output_schema` with the prefix `uc2_` (writes to 
 | **Across horizons** | `xh_ghi_da_minus_wa`, `xh_gti_poa_da_minus_wa`, `xh_power_mw_da_minus_wa` |
 | Computed | Sun position, clear-sky GHI, `t_hour/doy_sin/cos`, `o_hour_sin/cos`, `lead_min`, `step`, `origin_hour_gulf`, `power_norm`, `p10_norm`, `p90_norm`, `band_width_norm`, `clip_flag`, `t_cell_c`, `temp_derate`, `is_day_int` |
 
-No plant-sensor or past-target features in this version.
+| Actual history (`act_`) | `act_lag_{0..180}m`, `act_mean/std/min/max_{60,180}m`, `act_change_15m/60m`, `act_macd`, `act_err_ratio_{60,180}m`, `act_yday_day_ratio`, `act_yday_mean`, `act_slot_d1/d2`, `act_slot_err_d1/d2` |
+| Extra (`cal_`, `ix_`, `day_`) | month sin/cos; interactions; `day_fc_energy_norm`, `day_fc_csi_mean`, `day_fc_max_ramp_norm` |
+
+No plant-sensor features. Switch groups off with `model_training.exclude_feature_prefixes` (e.g. `[act_]`) to measure each group's value.
 
 ## Models
 
 - **Daytime only:** models exist only for target slots inside the daytime window (`model_training.daytime`). Default: **Gulf 06:00–18:00** (`mode: clock`); `mode: sun` uses sun-up instead (covers summer evenings until ~19:10). Outside the window the forecast is 0. The report shows how much real production falls outside the window.
 - **Grain:** one model per **forecast time (09:00 / 15:00) × daytime step × plant**, i.e. ~48 steps per forecast time (≈ 192 models per plant).
 - **Label:** target ÷ capacity. Predictions are clipped to 0–1.05 and converted back to MW.
-- **Scoring:** daytime-window slots with usable labels; Reuniwatt baseline scored on the same rows.
-- **Split:** last 3 months of origins = test.
+- **Target:** actual MW for both plants (agreed; `Pv2_AVL` no longer used). Capacities from the Phase 1 doc: pv1 935 MW, pv2 1,584 MW.
+- **Test windows (`model_training.splits`):** `phase1_window` = Sep 1 – Nov 19 2025 (training before Sep 2025, like-for-like with Phase 1) and `recent_3m` = last 3 months. Each split trains its own models.
+- **Scoring:** MAPE only where actual > **150 MW** (Phase 1 rule); daytime-window slots with usable labels; Reuniwatt baseline on the same rows.
+- **Optional recency weighting:** `recency_half_life_days`.
 - **MLflow:** experiment `/Users/<you>/uc2_solar`, one run per product × site × candidate.
   - Logged: parameters, test and baseline metrics, MAPE by step (as a metric series), feature importance, and all models as `models.pkl`.
 
