@@ -1,0 +1,174 @@
+# Input analysis · run 2026-10-18 12:25 UTC · Bronze MW column swap 2026-03-17
+## A1 · daytime zero share by minute of hour (09-15 Gulf)
+minute | minutes | pv1_small_zero_pct | pv2_large_zero_pct
+0 | 7842 | 0.04 | 0.64
+1 | 7675 | 0.01 | 0.75
+2 | 7684 | 0 | 0.19
+3 | 7689 | 0 | 0.15
+4 | 7680 | 0 | 0.1
+5 | 7867 | 0 | 0.11
+6 | 7691 | 0 | 0.41
+7 | 7694 | 0 | 0.72
+8 | 7693 | 0 | 0.1
+9 | 7697 | 0 | 0.1
+10 | 7858 | 0 | 0.11
+11 | 7694 | 0 | 0.12
+12 | 7696 | 0.01 | 0.38
+13 | 7695 | 0.01 | 0.72
+14 | 7696 | 0 | 0.07
+15 | 7867 | 0 | 0.08
+16 | 7694 | 0.01 | 0.08
+17 | 7695 | 0.01 | 0.1
+18 | 7692 | 0 | 0.31
+19 | 7689 | 0 | 0.65
+20 | 7860 | 0 | 0.08
+21 | 7688 | 0 | 0.08
+22 | 7693 | 0 | 0.1
+23 | 7694 | 0 | 0.1
+24 | 7692 | 0 | 0.27
+25 | 7863 | 0 | 0.65
+26 | 7689 | 0 | 0.1
+27 | 7692 | 0 | 0.16
+28 | 7691 | 0 | 0.11
+29 | 7692 | 0 | 0.08
+30 | 7858 | 0.03 | 0.35
+31 | 7683 | 0.01 | 0.66
+32 | 7694 | 0 | 0.44
+33 | 7693 | 0.01 | 0.15
+34 | 7683 | 0.01 | 0.08
+35 | 7866 | 0.03 | 0.09
+36 | 7687 | 0.01 | 0.35
+37 | 7691 | 0.01 | 0.73
+38 | 7687 | 0.01 | 0.1
+39 | 7689 | 0.01 | 0.08
+40 | 7857 | 0.01 | 0.11
+41 | 7689 | 0.01 | 0.11
+42 | 7689 | 0.01 | 0.31
+43 | 7688 | 0.01 | 0.72
+44 | 7690 | 0.03 | 0.08
+45 | 7852 | 0.03 | 0.12
+46 | 7682 | 0.03 | 0.1
+47 | 7689 | 0.03 | 0.1
+48 | 7689 | 0.01 | 0.38
+49 | 7684 | 0 | 0.64
+50 | 7857 | 0.01 | 0.09
+51 | 7685 | 0.01 | 0.04
+52 | 7687 | 0 | 0.15
+53 | 7687 | 0.01 | 0.19
+54 | 7689 | 0.01 | 0.35
+55 | 7861 | 0.01 | 0.65
+56 | 7687 | 0.01 | 0.11
+57 | 7691 | 0.01 | 0.07
+58 | 7692 | 0 | 0.08
+59 | 7691 | 0 | 0.18
+
+## A2 · daytime 15-min periods mixing zero minutes with output > 100 MW
+year | periods | pv1_mixed_pct | pv2_mixed_pct
+2023 | 7199 | 0 | 0.11
+2024 | 9107 | 0 | 0.01
+2025 | 9100 | 0 | 0
+2026 | 7241 | 0.01 | 0.03
+
+## B · telemetry delay (last 2 months)
+week | unparsed_pct | delay_p5_p50_p95_as_is | delay_p5_p50_p95_if_load_utc | distinct_load_times
+2026-08-17 00:00:00 | 100 |  |  | 0
+2026-08-24 00:00:00 | 100 |  |  | 0
+2026-08-31 00:00:00 | 100 |  |  | 0
+2026-09-07 00:00:00 | 100 |  |  | 0
+2026-09-14 00:00:00 | 100 |  |  | 0
+2026-09-21 00:00:00 | 100 |  |  | 0
+2026-09-28 00:00:00 | 100 |  |  | 0
+2026-10-05 00:00:00 | 100 |  |  | 0
+2026-10-12 00:00:00 | 100 |  |  | 0
+
+Solcast pv1 table columns: air_temp, albedo, azimuth, clearsky_dhi, clearsky_dni, clearsky_ghi, clearsky_gti, cloud_opacity, dewpoint_temp, dhi, dni, ghi, gti, precipitation_rate, relative_humidity, wind_speed_10m, zenith, period_end, period, Load_Datetime
+Solcast pv2 table columns: air_temp, albedo, azimuth, clearsky_dhi, clearsky_dni, clearsky_ghi, clearsky_gti, cloud_opacity, dewpoint_temp, dhi, dni, ghi, gti, precipitation_rate, wind_direction_10m, wind_speed_10m, zenith, period_end, period, Load_Datetime
+Reuniwatt columns: site, horizon, reference_time, raw_source, period_end, ghi, dni, dhi, bhi, gti, gti_east, gti_west, temp_c, dewpoint_c, humidity_pct, wind_speed, wind_dir, cloud_opacity, pressure_hpa, precip_rate_mmh, clearness_index, power_mw, power_p10_mw, power_p90_mw, gti_poa, lead_min
+## C2 · Solcast table vs plant (correlations)
+site | corr_ghi_vs_actual | corr_gti_vs_actual | corr_ghi_vs_sensor | solcast_table
+pv1 | 0.9805 | 0.9532 | 0.9609 | pv1
+pv1 | 0.9651 | 0.9388 | 0.9733 | pv2
+pv2 | 0.8784 | 0.8221 | 0.9845 | pv1
+pv2 | 0.8876 | 0.8346 | 0.9691 | pv2
+
+## C3 · agreement with plant sensors (daytime)
+variable | site | source | n | corr | bias | err_pct_of_mean
+ghi | pv1 | Solcast history | 30281 | 0.9609 | -21.36 | 8.23
+ghi | pv2 | Solcast history | 30282 | 0.9691 | -19.95 | 8.32
+gti | pv1 | Solcast history | 30282 | 0.9442 | 21.21 | 14.62
+rh | pv1 | Solcast history | 30281 | 0.8222 | -5.66 | 21.76
+temp | pv1 | Solcast history | 30281 | 0.9669 | -0.29 | 4.87
+temp | pv2 | Solcast history | 30282 | 0.9714 | -1.57 | 6.1
+wind | pv2 | Solcast history | 30281 | 0.7795 | -1.88 | 33.55
+
+## C4 · correlation with actual output (daytime)
+site | n | corr_with_actual | input
+pv1 | 30282 | 0.9908 | sensor GTI
+pv1 | 30282 | 0.9805 | Solcast GHI
+pv1 | 30281 | 0.956 | sensor GHI
+pv1 | 30282 | 0.9532 | Solcast GTI
+pv1 | 0 |  | Reuniwatt latest power
+pv1 | 0 |  | Reuniwatt 12-24h GHI
+pv1 | 0 |  | Reuniwatt 12-24h GTI
+pv1 | 0 |  | Reuniwatt latest GHI
+pv1 | 0 |  | Reuniwatt 12-24h power
+pv1 | 0 |  | Reuniwatt latest GTI
+pv2 | 30282 | 0.8876 | Solcast GHI
+pv2 | 30282 | 0.8755 | sensor GHI
+pv2 | 30282 | 0.8346 | Solcast GTI
+pv2 | 0 |  | Reuniwatt latest GHI
+pv2 | 0 |  | Reuniwatt latest GTI
+pv2 | 0 |  | Reuniwatt 12-24h GHI
+pv2 | 0 |  | sensor GTI
+pv2 | 0 |  | Reuniwatt latest power
+pv2 | 0 |  | Reuniwatt 12-24h GTI
+pv2 | 0 |  | Reuniwatt 12-24h power
+
+## C5 · GHI error vs sensors by month
+site | month | solcast_ghi_err_pct | reuni_latest_ghi_err_pct | reuni_12_24h_ghi_err_pct | solcast_ghi_corr | reuni_latest_ghi_corr
+pv1 | 2024-01-01 00:00:00 | 10.34 |  |  | 0.9124 | 
+pv1 | 2024-02-01 00:00:00 | 11.8 |  |  | 0.9338 | 
+pv1 | 2024-03-01 00:00:00 | 13.96 |  |  | 0.9102 | 
+pv1 | 2024-04-01 00:00:00 | 9.34 |  |  | 0.9429 | 
+pv1 | 2024-05-01 00:00:00 | 5.35 |  |  | 0.9661 | 
+pv1 | 2024-06-01 00:00:00 | 4.54 |  |  | 0.9934 | 
+pv1 | 2024-07-01 00:00:00 | 7.11 |  |  | 0.9844 | 
+pv1 | 2024-08-01 00:00:00 | 10.04 |  |  | 0.9456 | 
+pv1 | 2024-09-01 00:00:00 | 3.75 |  |  | 0.9941 | 
+pv1 | 2024-10-01 00:00:00 | 5.76 |  |  | 0.9611 | 
+pv1 | 2024-11-01 00:00:00 | 3.65 |  |  | 0.9949 | 
+pv1 | 2024-12-01 00:00:00 | 6.64 |  |  | 0.9756 | 
+pv1 | 2025-01-01 00:00:00 | 9.35 |  |  | 0.9407 | 
+pv1 | 2025-02-01 00:00:00 | 17.41 |  |  | 0.881 | 
+pv1 | 2025-03-01 00:00:00 | 10.09 |  |  | 0.9196 | 
+pv1 | 2025-04-01 00:00:00 | 5.11 |  |  | 0.9882 | 
+pv1 | 2025-05-01 00:00:00 | 3.3 |  |  | 0.9971 | 
+pv1 | 2025-06-01 00:00:00 | 5.22 |  |  | 0.9912 | 
+pv1 | 2025-07-01 00:00:00 | 8.13 |  |  | 0.9869 | 
+pv1 | 2025-08-01 00:00:00 | 10.49 |  |  | 0.9795 | 
+pv1 | 2025-09-01 00:00:00 | 6.08 |  |  | 0.9894 | 
+pv1 | 2025-10-01 00:00:00 | 20.15 |  |  | 0.9545 | 
+pv1 | 2025-11-01 00:00:00 | 15.77 |  |  | 0.9771 | 
+pv2 | 2024-01-01 00:00:00 | 11.21 |  |  | 0.9293 | 
+pv2 | 2024-02-01 00:00:00 | 10.8 |  |  | 0.9517 | 
+pv2 | 2024-03-01 00:00:00 | 13.58 |  |  | 0.9425 | 
+pv2 | 2024-04-01 00:00:00 | 10.5 |  |  | 0.9519 | 
+pv2 | 2024-05-01 00:00:00 | 5.67 |  |  | 0.9847 | 
+pv2 | 2024-06-01 00:00:00 | 5.53 |  |  | 0.9873 | 
+pv2 | 2024-07-01 00:00:00 | 7.46 |  |  | 0.9817 | 
+pv2 | 2024-08-01 00:00:00 | 12.63 |  |  | 0.9451 | 
+pv2 | 2024-09-01 00:00:00 | 5.79 |  |  | 0.9911 | 
+pv2 | 2024-10-01 00:00:00 | 6.35 |  |  | 0.9832 | 
+pv2 | 2024-11-01 00:00:00 | 3.67 |  |  | 0.9947 | 
+pv2 | 2024-12-01 00:00:00 | 7.29 |  |  | 0.9733 | 
+pv2 | 2025-01-01 00:00:00 | 8.86 |  |  | 0.9411 | 
+pv2 | 2025-02-01 00:00:00 | 16.23 |  |  | 0.8949 | 
+pv2 | 2025-03-01 00:00:00 | 11.29 |  |  | 0.924 | 
+pv2 | 2025-04-01 00:00:00 | 6.28 |  |  | 0.9895 | 
+pv2 | 2025-05-01 00:00:00 | 4.63 |  |  | 0.9935 | 
+pv2 | 2025-06-01 00:00:00 | 5.61 |  |  | 0.9909 | 
+pv2 | 2025-07-01 00:00:00 | 9.6 |  |  | 0.9761 | 
+pv2 | 2025-08-01 00:00:00 | 12.46 |  |  | 0.976 | 
+pv2 | 2025-09-01 00:00:00 | 9.07 |  |  | 0.9791 | 
+pv2 | 2025-10-01 00:00:00 | 5.02 |  |  | 0.976 | 
+pv2 | 2025-11-01 00:00:00 | 7.69 |  |  | 0.9597 | 
