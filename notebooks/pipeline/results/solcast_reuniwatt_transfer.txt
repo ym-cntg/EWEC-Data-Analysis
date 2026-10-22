@@ -1,0 +1,673 @@
+# Solcast → Reuniwatt transfer analysis · run 2026-10-22 18:24 UTC
+settings: {'output_schema': 'ewec_dev_powerops.scratch_yash', 'satellite_table': '', 'solcast_train_start': '2024-01-01', 'solcast_train_end': '2025-11-18', 'reuni_train_end': '2026-08-31', 'test_start': '2026-09-01', 'test_end': '', 'daytime_mode': 'clock'}
+A1 columns: telemetry a=actual_mw b=sensor GHI c=sensor temp | solcast a=ghi b=temp c=cloud | reuniwatt a=ghi b=temp c=power
+## A1 · daytime coverage (% filled) by month
+           source site      month  periods  a_pct  b_pct  c_pct
+     reuniwatt_da  pv1 2024-01-01      447    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-02-01     1212    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-03-01     1383    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-04-01     1421    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-05-01     1540    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-06-01     1530    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-07-01     1559    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-08-01     1497    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-09-01     1375    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-10-01     1327    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-11-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv1 2024-12-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-01-01     1230    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-02-01     1169    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-03-01     1380    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-04-01     1418    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-05-01     1539    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-06-01     1529    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-07-01     1560    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-08-01     1500    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-09-01     1378    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-10-01     1330    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-11-01     1204    0.0    0.0    0.0
+     reuniwatt_da  pv1 2025-12-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-01-01     1230    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-02-01     1169    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-03-01     1380    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-04-01     1418    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-05-01     1539    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-06-01     1529    0.0    0.0    0.0
+     reuniwatt_da  pv1 2026-07-01     1560   91.7   90.9   91.7
+     reuniwatt_da  pv1 2026-08-01     1500  100.0  100.0  100.0
+     reuniwatt_da  pv1 2026-09-01     1378  100.0  100.0  100.0
+     reuniwatt_da  pv1 2026-10-01      650  100.0  100.0  100.0
+     reuniwatt_da  pv2 2024-01-01      447    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-02-01     1212    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-03-01     1383    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-04-01     1421    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-05-01     1540    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-06-01     1530    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-07-01     1559    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-08-01     1497    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-09-01     1375    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-10-01     1327    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-11-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv2 2024-12-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-01-01     1230    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-02-01     1169    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-03-01     1380    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-04-01     1418    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-05-01     1539    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-06-01     1529    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-07-01     1560    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-08-01     1500    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-09-01     1378    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-10-01     1330    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-11-01     1204    0.0    0.0    0.0
+     reuniwatt_da  pv2 2025-12-01     1202    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-01-01     1230    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-02-01     1169    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-03-01     1380    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-04-01     1418    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-05-01     1539    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-06-01     1529    0.0    0.0    0.0
+     reuniwatt_da  pv2 2026-07-01     1560   91.7   90.9   91.7
+     reuniwatt_da  pv2 2026-08-01     1500  100.0  100.0  100.0
+     reuniwatt_da  pv2 2026-09-01     1378  100.0  100.0  100.0
+     reuniwatt_da  pv2 2026-10-01      650  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-01-01     1230  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-02-01     1169  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-03-01     1380  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-04-01     1418  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-05-01     1539  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-06-01     1529  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-07-01     1560  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-08-01     1500  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-09-01     1378  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-10-01     1330  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-11-01     1204  100.0  100.0  100.0
+solcast_pv1_table  pv1 2023-12-01     1202  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-01-01     1230  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-02-01     1212  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-03-01     1383  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-04-01     1421  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-05-01     1540  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-06-01     1530  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-07-01     1559  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-08-01     1497  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-09-01     1375  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-10-01     1327  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-11-01     1202  100.0  100.0  100.0
+solcast_pv1_table  pv1 2024-12-01     1202  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-01-01     1230  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-02-01     1169  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-03-01     1380  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-04-01     1418  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-05-01     1539  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-06-01     1529  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-07-01     1560  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-08-01     1500  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-09-01     1378  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-10-01     1330  100.0  100.0  100.0
+solcast_pv1_table  pv1 2025-11-01      775  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-01-01     1230  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-02-01     1169  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-03-01     1380  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-04-01     1418  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-05-01     1539  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-06-01     1529  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-07-01     1560  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-08-01     1500  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-09-01     1378  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-10-01     1330  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-11-01     1204  100.0  100.0  100.0
+solcast_pv2_table  pv2 2023-12-01     1202  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-01-01     1230  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-02-01     1212  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-03-01     1383  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-04-01     1421  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-05-01     1540  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-06-01     1530  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-07-01     1559  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-08-01     1497  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-09-01     1375  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-10-01     1327  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-11-01     1202  100.0  100.0  100.0
+solcast_pv2_table  pv2 2024-12-01     1202  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-01-01     1230  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-02-01     1169  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-03-01     1380  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-04-01     1418  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-05-01     1539  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-06-01     1529  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-07-01     1560  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-08-01     1500  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-09-01     1378  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-10-01     1330  100.0  100.0  100.0
+solcast_pv2_table  pv2 2025-11-01      775  100.0  100.0  100.0
+        telemetry  pv1 2023-03-01      606  100.0   67.0   92.1
+        telemetry  pv1 2023-04-01     1418  100.0   97.8   93.7
+        telemetry  pv1 2023-05-01     1539  100.0   99.0   99.5
+        telemetry  pv1 2023-06-01     1529  100.0  100.0  100.0
+        telemetry  pv1 2023-07-01     1560  100.0   99.9   99.9
+        telemetry  pv1 2023-08-01     1500  100.0  100.0  100.0
+        telemetry  pv1 2023-09-01     1378  100.0  100.0  100.0
+        telemetry  pv1 2023-10-01     1330  100.0  100.0   97.6
+        telemetry  pv1 2023-11-01     1204  100.0  100.0  100.0
+        telemetry  pv1 2023-12-01     1202  100.0   99.9   99.9
+        telemetry  pv1 2024-01-01     1220   99.8  100.0  100.0
+        telemetry  pv1 2024-02-01     1199   99.9  100.0  100.0
+        telemetry  pv1 2024-03-01     1383  100.0  100.0  100.0
+        telemetry  pv1 2024-04-01     1421  100.0  100.0  100.0
+        telemetry  pv1 2024-05-01     1540  100.0  100.0  100.0
+        telemetry  pv1 2024-06-01     1530  100.0  100.0  100.0
+        telemetry  pv1 2024-07-01     1559  100.0  100.0  100.0
+        telemetry  pv1 2024-08-01     1497  100.0  100.0  100.0
+        telemetry  pv1 2024-09-01     1375  100.0   99.9   99.9
+        telemetry  pv1 2024-10-01     1327  100.0  100.0  100.0
+        telemetry  pv1 2024-11-01     1202  100.0  100.0  100.0
+        telemetry  pv1 2024-12-01     1163  100.0  100.0  100.0
+        telemetry  pv1 2025-01-01     1230  100.0  100.0  100.0
+        telemetry  pv1 2025-02-01     1153  100.0  100.0  100.0
+        telemetry  pv1 2025-03-01     1380  100.0  100.0  100.0
+        telemetry  pv1 2025-04-01     1418  100.0  100.0  100.0
+        telemetry  pv1 2025-05-01     1539  100.0  100.0  100.0
+        telemetry  pv1 2025-06-01     1529  100.0  100.0  100.0
+        telemetry  pv1 2025-07-01     1560  100.0  100.0  100.0
+        telemetry  pv1 2025-08-01     1500  100.0  100.0  100.0
+        telemetry  pv1 2025-09-01     1368  100.0  100.0  100.0
+        telemetry  pv1 2025-10-01     1322  100.0  100.0  100.0
+        telemetry  pv1 2025-11-01     1204  100.0  100.0  100.0
+        telemetry  pv1 2025-12-01     1193  100.0  100.0  100.0
+        telemetry  pv1 2026-01-01     1230  100.0  100.0  100.0
+        telemetry  pv1 2026-02-01     1169  100.0  100.0  100.0
+        telemetry  pv1 2026-03-01     1377   99.8  100.0  100.0
+        telemetry  pv1 2026-04-01     1418  100.0  100.0   59.4
+        telemetry  pv1 2026-05-01     1537  100.0   97.3    0.0
+        telemetry  pv1 2026-06-01     1529  100.0   99.7   76.7
+        telemetry  pv1 2026-07-01     1555  100.0  100.0  100.0
+        telemetry  pv1 2026-08-01     1462  100.0  100.0  100.0
+        telemetry  pv1 2026-09-01     1378  100.0  100.0  100.0
+        telemetry  pv1 2026-10-01      953  100.0  100.0  100.0
+        telemetry  pv2 2023-03-01      606    0.0  100.0  100.0
+        telemetry  pv2 2023-04-01     1418   44.3  100.0  100.0
+        telemetry  pv2 2023-05-01     1539   63.6  100.0  100.0
+        telemetry  pv2 2023-06-01     1529   94.2  100.0  100.0
+        telemetry  pv2 2023-07-01     1560   99.7  100.0  100.0
+        telemetry  pv2 2023-08-01     1500  100.0  100.0  100.0
+        telemetry  pv2 2023-09-01     1378  100.0   60.5   42.9
+        telemetry  pv2 2023-10-01     1330  100.0   99.9  100.0
+        telemetry  pv2 2023-11-01     1204  100.0  100.0  100.0
+        telemetry  pv2 2023-12-01     1202   99.9  100.0  100.0
+        telemetry  pv2 2024-01-01     1220  100.0  100.0  100.0
+        telemetry  pv2 2024-02-01     1199  100.0  100.0  100.0
+        telemetry  pv2 2024-03-01     1383  100.0  100.0  100.0
+        telemetry  pv2 2024-04-01     1421  100.0  100.0  100.0
+        telemetry  pv2 2024-05-01     1540  100.0  100.0  100.0
+        telemetry  pv2 2024-06-01     1530  100.0  100.0  100.0
+        telemetry  pv2 2024-07-01     1559  100.0  100.0  100.0
+        telemetry  pv2 2024-08-01     1497  100.0  100.0  100.0
+        telemetry  pv2 2024-09-01     1375  100.0  100.0  100.0
+        telemetry  pv2 2024-10-01     1327  100.0  100.0  100.0
+        telemetry  pv2 2024-11-01     1202  100.0  100.0  100.0
+        telemetry  pv2 2024-12-01     1163  100.0  100.0  100.0
+        telemetry  pv2 2025-01-01     1230  100.0  100.0  100.0
+        telemetry  pv2 2025-02-01     1153  100.0  100.0  100.0
+        telemetry  pv2 2025-03-01     1380  100.0  100.0  100.0
+        telemetry  pv2 2025-04-01     1418  100.0  100.0  100.0
+        telemetry  pv2 2025-05-01     1539  100.0  100.0  100.0
+        telemetry  pv2 2025-06-01     1529  100.0  100.0  100.0
+        telemetry  pv2 2025-07-01     1560  100.0  100.0  100.0
+        telemetry  pv2 2025-08-01     1500  100.0  100.0  100.0
+        telemetry  pv2 2025-09-01     1368  100.0  100.0  100.0
+        telemetry  pv2 2025-10-01     1322  100.0  100.0  100.0
+        telemetry  pv2 2025-11-01     1204  100.0  100.0  100.0
+        telemetry  pv2 2025-12-01     1193  100.0  100.0  100.0
+        telemetry  pv2 2026-01-01     1230  100.0  100.0  100.0
+        telemetry  pv2 2026-02-01     1169  100.0  100.0  100.0
+        telemetry  pv2 2026-03-01     1377   99.9  100.0  100.0
+        telemetry  pv2 2026-04-01     1418  100.0  100.0  100.0
+        telemetry  pv2 2026-05-01     1537  100.0  100.0  100.0
+        telemetry  pv2 2026-06-01     1529  100.0  100.0  100.0
+        telemetry  pv2 2026-07-01     1555  100.0  100.0  100.0
+        telemetry  pv2 2026-08-01     1462  100.0  100.0  100.0
+        telemetry  pv2 2026-09-01     1378  100.0  100.0  100.0
+        telemetry  pv2 2026-10-01      953  100.0  100.0  100.0
+
+## A2 · daytime GHI distribution by month (W/m²)
+           source site      month    n   p5   p25   p50    p75    p95    max
+     reuniwatt_da  pv1 2024-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-07-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-08-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-09-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-10-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-11-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2024-12-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-07-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-08-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-09-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-10-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-11-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2025-12-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv1 2026-07-01 1430 74.8 317.2 645.7  895.0  990.9 1037.5
+     reuniwatt_da  pv1 2026-08-01 1500 67.1 315.9 638.0  876.2  972.1  996.9
+     reuniwatt_da  pv1 2026-09-01 1378 77.6 321.9 637.2  858.4  934.5  968.6
+     reuniwatt_da  pv1 2026-10-01  650 79.2 309.9 601.6  798.0  881.2  907.1
+     reuniwatt_da  pv2 2024-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-07-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-08-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-09-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-10-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-11-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2024-12-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-07-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-08-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-09-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-10-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-11-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2025-12-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-01-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-02-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-03-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-04-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-05-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-06-01    0  NaN   NaN   NaN    NaN    NaN    NaN
+     reuniwatt_da  pv2 2026-07-01 1430 77.6 322.6 663.8  909.9 1000.9 1039.9
+     reuniwatt_da  pv2 2026-08-01 1500 71.4 325.5 656.8  890.2  982.0 1008.1
+     reuniwatt_da  pv2 2026-09-01 1378 76.5 321.0 644.9  862.3  939.9  965.2
+     reuniwatt_da  pv2 2026-10-01  650 88.9 323.0 606.9  810.4  891.6  913.4
+           sensor  pv1 2023-03-01  406 23.5 196.4 585.5 3576.3 6596.5 7116.9
+           sensor  pv1 2023-04-01 1387 47.1 209.7 415.0  592.2  861.6 1586.7
+           sensor  pv1 2023-05-01 1523 94.0 368.0 698.6  936.1 1039.8 1220.5
+           sensor  pv1 2023-06-01 1529 82.4 344.6 674.2  906.8  990.7 1032.6
+           sensor  pv1 2023-07-01 1558 65.4 308.4 644.9  887.9  991.9 1250.8
+           sensor  pv1 2023-08-01 1500 69.2 322.0 646.5  856.1  933.3 1053.5
+           sensor  pv1 2023-09-01 1378 67.3 300.4 604.4  801.5  888.3  947.2
+           sensor  pv1 2023-10-01 1330 70.9 294.5 582.7  764.7  855.6 1121.0
+           sensor  pv1 2023-11-01 1204 80.6 285.4 524.7  698.0  799.6  924.4
+           sensor  pv1 2023-12-01 1201 79.9 265.1 507.9  665.9  737.8  872.2
+           sensor  pv1 2024-01-01 1220 86.8 298.3 543.6  705.2  767.8  887.8
+           sensor  pv1 2024-02-01 1199 74.3 267.9 550.9  763.5  866.8 1054.9
+           sensor  pv1 2024-03-01 1383 67.3 266.8 565.3  838.5  958.4 1138.4
+           sensor  pv1 2024-04-01 1421 68.2 300.8 663.3  919.6 1022.7 1257.5
+           sensor  pv1 2024-05-01 1540 83.2 363.9 707.3  941.1 1028.8 1164.6
+           sensor  pv1 2024-06-01 1530 80.4 344.1 674.3  916.4 1006.5 1076.7
+           sensor  pv1 2024-07-01 1559 67.2 316.7 650.1  876.6  980.5 1101.5
+           sensor  pv1 2024-08-01 1497 65.1 268.7 574.6  843.0  948.5 1125.5
+           sensor  pv1 2024-09-01 1374 79.9 335.2 642.4  851.5  936.4  962.2
+           sensor  pv1 2024-10-01 1327 94.1 330.2 607.8  784.2  870.1 1116.0
+           sensor  pv1 2024-11-01 1202 87.7 297.9 539.7  696.2  760.6  799.9
+           sensor  pv1 2024-12-01 1163 85.1 278.3 508.4  661.2  738.6  849.0
+           sensor  pv1 2025-01-01 1230 78.6 286.2 535.1  715.5  799.5  891.5
+           sensor  pv1 2025-02-01 1153 72.9 274.9 550.6  767.1  857.4 1004.4
+           sensor  pv1 2025-03-01 1380 79.8 315.6 634.9  871.6  993.1 1255.9
+           sensor  pv1 2025-04-01 1418 99.4 374.2 715.0  950.1 1040.0 1234.9
+           sensor  pv1 2025-05-01 1539 81.3 360.5 701.3  941.0 1029.6 1088.8
+           sensor  pv1 2025-06-01 1529 78.9 334.2 668.8  911.2 1014.7 1083.4
+           sensor  pv1 2025-07-01 1560 67.6 298.0 630.7  866.3  964.7 1016.5
+           sensor  pv1 2025-08-01 1500 66.9 298.4 617.6  855.7  953.4 1069.4
+           sensor  pv1 2025-09-01 1368 67.2 297.7 621.2  839.5  923.2  976.2
+           sensor  pv1 2025-10-01 1322 61.3 249.4 488.2  643.0  851.1  915.0
+           sensor  pv1 2025-11-01 1204 67.6 259.0 487.7  645.0  735.7  781.5
+           sensor  pv1 2025-12-01 1193 65.2 230.4 431.0  588.6  691.5  913.5
+           sensor  pv1 2026-01-01 1230 65.9 262.8 498.9  665.4  745.7  818.3
+           sensor  pv1 2026-02-01 1169 70.3 301.5 584.1  775.7  873.4  922.9
+           sensor  pv1 2026-03-01 1377 32.6 151.7 400.3  704.8  898.7 1101.0
+           sensor  pv1 2026-04-01 1418  0.0   0.0 129.7  613.3  986.4 1120.0
+           sensor  pv1 2026-05-01 1496  0.0   0.0   0.0    0.0    0.0    0.0
+           sensor  pv1 2026-06-01 1524  0.0  46.6 488.7  882.5 1028.4 1065.8
+           sensor  pv1 2026-07-01 1555 70.5 308.5 648.6  888.9  981.0 1049.5
+           sensor  pv1 2026-08-01 1462 68.5 285.4 612.0  865.2  965.8 1031.5
+           sensor  pv1 2026-09-01 1378 67.0 320.7 636.0  859.1  940.7 1039.8
+           sensor  pv1 2026-10-01  953 73.6 304.2 587.1  792.5  869.7  892.8
+           sensor  pv2 2023-03-01  606 74.1 297.6 611.5  881.7 1014.6 1045.2
+           sensor  pv2 2023-04-01 1418 79.3 322.2 632.7  902.8 1033.9 1085.6
+           sensor  pv2 2023-05-01 1539 84.6 340.7 686.0  943.8 1049.3 1134.1
+           sensor  pv2 2023-06-01 1529 67.5 325.5 674.1  916.9 1014.8 1042.1
+           sensor  pv2 2023-07-01 1560 67.3 290.6 617.2  869.8  973.4 1045.7
+           sensor  pv2 2023-08-01 1500 68.2 301.2 635.2  887.4  977.3 1014.0
+           sensor  pv2 2023-09-01  834  0.0   0.0 308.5  750.2  903.5  961.9
+           sensor  pv2 2023-10-01 1329 65.1 262.2 557.8  773.1  869.7  926.1
+           sensor  pv2 2023-11-01 1204 73.2 258.7 490.3  672.6  778.9  932.8
+           sensor  pv2 2023-12-01 1202 83.7 270.5 497.4  650.2  723.7  816.0
+           sensor  pv2 2024-01-01 1220 78.4 282.4 507.1  679.0  762.2  856.0
+           sensor  pv2 2024-02-01 1199 64.0 224.6 483.6  739.0  874.8 1004.5
+           sensor  pv2 2024-03-01 1383 53.2 224.2 523.2  792.1  949.9 1041.8
+           sensor  pv2 2024-04-01 1421 58.4 285.1 601.4  906.1 1020.2 1102.6
+           sensor  pv2 2024-05-01 1540 85.7 339.6 684.6  943.5 1032.8 1105.7
+           sensor  pv2 2024-06-01 1530 74.5 327.5 671.2  919.5 1016.6 1131.7
+           sensor  pv2 2024-07-01 1559 68.2 293.6 632.1  874.6  977.6 1023.1
+           sensor  pv2 2024-08-01 1497 61.1 273.4 589.0  843.6  960.3 1072.9
+           sensor  pv2 2024-09-01 1375 72.7 326.7 658.3  872.2  963.1  994.7
+           sensor  pv2 2024-10-01 1327 87.8 321.3 601.2  793.5  885.3  986.3
+           sensor  pv2 2024-11-01 1202 87.0 302.8 539.0  704.6  781.0  819.6
+           sensor  pv2 2024-12-01 1163 83.3 277.2 494.2  654.6  720.5  797.3
+           sensor  pv2 2025-01-01 1230 74.9 272.9 510.2  690.4  779.8  892.3
+           sensor  pv2 2025-02-01 1153 66.0 239.6 484.6  726.8  845.6  967.3
+           sensor  pv2 2025-03-01 1380 78.6 307.2 585.5  853.5  988.9 1060.0
+           sensor  pv2 2025-04-01 1418 96.5 374.7 709.8  946.6 1038.4 1106.0
+           sensor  pv2 2025-05-01 1539 87.9 356.0 702.4  945.6 1034.7 1111.2
+           sensor  pv2 2025-06-01 1529 68.9 322.1 661.2  918.8 1017.2 1090.6
+           sensor  pv2 2025-07-01 1560 63.9 286.0 635.3  881.5  972.0 1039.8
+           sensor  pv2 2025-08-01 1500 67.5 292.2 629.9  858.3  958.6 1015.6
+           sensor  pv2 2025-09-01 1368 67.8 305.8 630.9  857.3  939.3 1015.0
+           sensor  pv2 2025-10-01 1322 70.4 289.3 577.3  786.3  872.9  922.1
+           sensor  pv2 2025-11-01 1204 71.6 280.9 529.7  705.1  776.3  802.0
+           sensor  pv2 2025-12-01 1193 67.9 229.5 435.9  611.6  706.1  777.3
+           sensor  pv2 2026-01-01 1230 78.6 271.8 499.4  682.4  762.8  844.5
+           sensor  pv2 2026-02-01 1169 81.3 322.1 592.8  779.0  874.0  914.6
+           sensor  pv2 2026-03-01 1377 35.7 152.6 420.1  729.0  911.7 1029.0
+           sensor  pv2 2026-04-01 1418 54.9 240.7 584.3  869.2 1001.4 1077.7
+           sensor  pv2 2026-05-01 1537 76.6 357.2 701.2  941.8 1043.1 1088.9
+           sensor  pv2 2026-06-01 1529 69.1 343.9 693.3  933.2 1037.4 1083.8
+           sensor  pv2 2026-07-01 1555 63.8 313.6 646.4  882.8  985.1 1047.6
+           sensor  pv2 2026-08-01 1462 63.3 287.8 615.7  853.2  964.3 1004.7
+           sensor  pv2 2026-09-01 1378 70.0 315.2 633.3  850.2  938.8  964.1
+           sensor  pv2 2026-10-01  953 72.8 297.9 585.2  782.5  871.1  911.7
+solcast_pv1_table  pv1 2023-01-01 1230 63.0 206.0 437.0  620.0  737.0  808.0
+solcast_pv1_table  pv1 2023-02-01 1169 80.0 308.0 587.0  769.0  869.0  895.0
+solcast_pv1_table  pv1 2023-03-01 1380 76.0 283.0 579.0  835.0  962.0 1028.0
+solcast_pv1_table  pv1 2023-04-01 1418 80.0 315.0 641.0  898.0 1020.0 1065.0
+solcast_pv1_table  pv1 2023-05-01 1539 77.0 331.0 674.0  920.0 1025.0 1073.0
+solcast_pv1_table  pv1 2023-06-01 1529 64.0 304.0 645.0  882.0  989.0 1032.0
+solcast_pv1_table  pv1 2023-07-01 1560 57.0 257.0 572.0  809.0  936.0 1034.0
+solcast_pv1_table  pv1 2023-08-01 1500 61.0 271.0 605.0  835.0  942.0  989.0
+solcast_pv1_table  pv1 2023-09-01 1378 61.0 284.0 589.0  798.0  891.0  943.0
+solcast_pv1_table  pv1 2023-10-01 1330 69.0 274.0 564.0  759.0  864.0  920.0
+solcast_pv1_table  pv1 2023-11-01 1204 79.0 274.0 500.0  667.0  755.0  802.0
+solcast_pv1_table  pv1 2023-12-01 1202 87.0 278.0 499.0  655.0  724.0  745.0
+solcast_pv1_table  pv1 2024-01-01 1230 78.0 280.0 512.0  674.0  756.0  807.0
+solcast_pv1_table  pv1 2024-02-01 1212 67.0 227.0 487.0  726.0  851.0  910.0
+solcast_pv1_table  pv1 2024-03-01 1383 55.0 215.0 502.0  784.0  924.0 1001.0
+solcast_pv1_table  pv1 2024-04-01 1421 63.0 278.0 595.0  888.0 1010.0 1056.0
+solcast_pv1_table  pv1 2024-05-01 1540 79.0 325.0 672.0  923.0 1016.0 1078.0
+solcast_pv1_table  pv1 2024-06-01 1530 69.0 305.0 653.0  901.0 1000.0 1058.0
+solcast_pv1_table  pv1 2024-07-01 1559 61.0 279.0 604.0  840.0  952.0 1011.0
+solcast_pv1_table  pv1 2024-08-01 1497 58.0 260.0 567.0  804.0  919.0  978.0
+solcast_pv1_table  pv1 2024-09-01 1375 72.0 318.0 633.0  849.0  936.0  985.0
+solcast_pv1_table  pv1 2024-10-01 1327 83.0 297.0 584.0  776.0  863.0  909.0
+solcast_pv1_table  pv1 2024-11-01 1202 85.0 293.0 541.0  701.0  779.0  812.0
+solcast_pv1_table  pv1 2024-12-01 1202 77.0 270.0 484.0  645.0  709.0  738.0
+solcast_pv1_table  pv1 2025-01-01 1230 77.0 260.0 498.0  671.0  754.0  799.0
+solcast_pv1_table  pv1 2025-02-01 1169 61.0 234.0 452.0  634.0  810.0  850.0
+solcast_pv1_table  pv1 2025-03-01 1380 73.0 296.0 598.0  833.0  964.0 1010.0
+solcast_pv1_table  pv1 2025-04-01 1418 85.0 341.0 690.0  923.0 1021.0 1049.0
+solcast_pv1_table  pv1 2025-05-01 1539 79.0 342.0 687.0  925.0 1018.0 1061.0
+solcast_pv1_table  pv1 2025-06-01 1529 65.0 307.0 651.0  891.0  994.0 1049.0
+solcast_pv1_table  pv1 2025-07-01 1560 55.0 251.0 589.0  820.0  920.0  994.0
+solcast_pv1_table  pv1 2025-08-01 1500 54.0 240.0 561.0  789.0  899.0  961.0
+solcast_pv1_table  pv1 2025-09-01 1378 65.0 292.0 591.0  817.0  910.0  965.0
+solcast_pv1_table  pv1 2025-10-01 1330 85.0 316.0 606.0  800.0  883.0  940.0
+solcast_pv1_table  pv1 2025-11-01  775 89.0 307.0 567.0  748.0  807.0  837.0
+solcast_pv2_table  pv2 2023-01-01 1230 64.0 214.0 424.0  613.0  741.0  800.0
+solcast_pv2_table  pv2 2023-02-01 1169 86.0 309.0 580.0  761.0  861.0  895.0
+solcast_pv2_table  pv2 2023-03-01 1380 70.0 259.0 575.0  835.0  957.0 1021.0
+solcast_pv2_table  pv2 2023-04-01 1418 77.0 293.0 636.0  892.0 1016.0 1070.0
+solcast_pv2_table  pv2 2023-05-01 1539 71.0 312.0 645.0  912.0 1024.0 1077.0
+solcast_pv2_table  pv2 2023-06-01 1529 70.0 313.0 650.0  887.0  990.0 1024.0
+solcast_pv2_table  pv2 2023-07-01 1560 59.0 275.0 597.0  821.0  954.0 1022.0
+solcast_pv2_table  pv2 2023-08-01 1500 64.0 291.0 614.0  838.0  947.0 1003.0
+solcast_pv2_table  pv2 2023-09-01 1378 65.0 287.0 590.0  801.0  890.0  962.0
+solcast_pv2_table  pv2 2023-10-01 1330 70.0 277.0 561.0  758.0  862.0  916.0
+solcast_pv2_table  pv2 2023-11-01 1204 76.0 266.0 498.0  658.0  754.0  790.0
+solcast_pv2_table  pv2 2023-12-01 1202 85.0 257.0 483.0  646.0  715.0  736.0
+solcast_pv2_table  pv2 2024-01-01 1230 77.0 282.0 522.0  675.0  752.0  811.0
+solcast_pv2_table  pv2 2024-02-01 1212 68.0 240.0 502.0  725.0  854.0  919.0
+solcast_pv2_table  pv2 2024-03-01 1383 59.0 224.0 491.0  786.0  917.0  989.0
+solcast_pv2_table  pv2 2024-04-01 1421 70.0 266.0 584.0  877.0 1007.0 1058.0
+solcast_pv2_table  pv2 2024-05-01 1540 74.0 325.0 668.0  919.0 1016.0 1080.0
+solcast_pv2_table  pv2 2024-06-01 1530 72.0 319.0 658.0  906.0  997.0 1075.0
+solcast_pv2_table  pv2 2024-07-01 1559 59.0 277.0 598.0  834.0  962.0 1010.0
+solcast_pv2_table  pv2 2024-08-01 1497 55.0 232.0 538.0  787.0  909.0  965.0
+solcast_pv2_table  pv2 2024-09-01 1375 77.0 309.0 627.0  840.0  933.0  978.0
+solcast_pv2_table  pv2 2024-10-01 1327 80.0 307.0 573.0  765.0  856.0  924.0
+solcast_pv2_table  pv2 2024-11-01 1202 87.0 291.0 534.0  695.0  775.0  809.0
+solcast_pv2_table  pv2 2024-12-01 1202 84.0 262.0 481.0  633.0  708.0  736.0
+solcast_pv2_table  pv2 2025-01-01 1230 79.0 271.0 507.0  675.0  755.0  806.0
+solcast_pv2_table  pv2 2025-02-01 1169 64.0 235.0 460.0  643.0  811.0  851.0
+solcast_pv2_table  pv2 2025-03-01 1380 70.0 283.0 586.0  830.0  960.0 1019.0
+solcast_pv2_table  pv2 2025-04-01 1418 81.0 337.0 681.0  916.0 1012.0 1050.0
+solcast_pv2_table  pv2 2025-05-01 1539 76.0 337.0 683.0  921.0 1012.0 1047.0
+solcast_pv2_table  pv2 2025-06-01 1529 71.0 310.0 648.0  886.0  991.0 1058.0
+solcast_pv2_table  pv2 2025-07-01 1560 58.0 267.0 575.0  824.0  929.0  966.0
+solcast_pv2_table  pv2 2025-08-01 1500 52.0 249.0 555.0  779.0  901.0  960.0
+solcast_pv2_table  pv2 2025-09-01 1378 64.0 281.0 584.0  804.0  903.0  945.0
+solcast_pv2_table  pv2 2025-10-01 1330 87.0 314.0 590.0  791.0  876.0  928.0
+solcast_pv2_table  pv2 2025-11-01  775 91.0 301.0 561.0  731.0  796.0  817.0
+
+## A3 · ewec_dev_reuniwatt.bronze.satellite_weather_sts
+columns: datetime (timestamp), site (string), ghi (double), dni (double), dhi (double), bhi (double), temperature (double), wind_speed (double), wind_direction (double), dewpoint_2m (double), pressure (double), precip (double), relative_humidity (double), clearness_index (double), cloud_opacity (double), _source (string), _ingested_at (timestamp)
+## A3 · ewec_dev_reuniwatt.bronze.satellite_weather_sts: rows and % filled by month (by datetime)
+     month  rows  ghi_filled_pct  dni_filled_pct  dhi_filled_pct  bhi_filled_pct  temperature_filled_pct  wind_speed_filled_pct  wind_direction_filled_pct  dewpoint_2m_filled_pct  pressure_filled_pct  precip_filled_pct  relative_humidity_filled_pct  clearness_index_filled_pct
+2014-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2014-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2015-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-02-01 11136           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2016-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2017-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2018-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2019-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-02-01 11136           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2020-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2021-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2022-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-02-01 10752           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2023-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-01-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-02-01 11136           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-03-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-04-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-05-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-06-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-07-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-08-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-09-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-10-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-11-01 11520           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2024-12-01 11904           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+2025-01-01     4           100.0           100.0           100.0           100.0                   100.0                  100.0                      100.0                   100.0                100.0              100.0                         100.0                       100.0
+
+## A3 · ewec_dev_reuniwatt.bronze.satellite_weather_sts: time ranges
+min_datetime           min__ingested_at max_datetime           max__ingested_at
+  2014-01-01 2026-10-20 10:52:24.857721   2025-01-01 2026-10-20 10:52:24.857721
+
+## B · Solcast table vs plant
+site  corr_with_sensor_ghi  corr_with_actual solcast_table
+ pv1                 0.986             0.987           pv2
+ pv1                 0.982             0.992           pv1
+ pv2                 0.992             0.958           pv1
+ pv2                 0.986             0.961           pv2
+
+B · Solcast table used per plant: {'pv1': 'pv2', 'pv2': 'pv1'}
+## C1 · agreement with plant sensors (daytime)
+site     n  corr   bias  err_pct_of_mean                from                  to              source variable
+ pv1  4915 0.990   6.28             3.99 2026-07-03 09:15:00 2026-10-15 13:30:00 reuniwatt_da_12_24h      ghi
+ pv1 44205 0.714 -30.36            10.76 2023-03-18 11:00:00 2025-11-19 13:00:00             solcast      ghi
+ pv2  4915 0.991  19.79             4.48 2026-07-03 09:15:00 2026-10-15 13:30:00 reuniwatt_da_12_24h      ghi
+ pv2 43911 0.971 -12.66             6.87 2023-03-18 11:00:00 2025-11-19 13:00:00             solcast      ghi
+ pv1  4903 0.956  -1.07             4.01 2026-07-03 12:15:00 2026-10-15 13:30:00 reuniwatt_da_12_24h     temp
+ pv1 44275 0.973  -0.60             4.07 2023-03-18 11:00:00 2025-11-19 13:00:00             solcast     temp
+ pv2  4903 0.884  -1.93             7.16 2026-07-03 12:15:00 2026-10-15 13:30:00 reuniwatt_da_12_24h     temp
+ pv2 43669 0.980  -1.44             5.60 2023-03-18 11:00:00 2025-11-19 13:00:00             solcast     temp
+
+## C2 · clear-sky index distribution (daytime)
+site     n    p5   p25   p50   p75   p95  mean                source
+ pv1  4915 0.608 0.785 0.901 0.952 0.987 0.856 reuniwatt (Jul 2026+)
+ pv1 44205 0.535 0.811 0.925 0.990 1.098 0.885      sensor (2024–25)
+ pv1 45287 0.000 0.776 0.920 0.985 1.073 0.833    sensor (Jul 2026+)
+ pv1 44456 0.514 0.768 0.893 0.967 1.038 0.848     solcast (2024–25)
+ pv2  4915 0.635 0.807 0.912 0.961 0.992 0.871 reuniwatt (Jul 2026+)
+ pv2 43911 0.486 0.817 0.939 1.001 1.073 0.879      sensor (2024–25)
+ pv2 45334 0.492 0.810 0.936 0.999 1.070 0.877    sensor (Jul 2026+)
+ pv2 44456 0.498 0.776 0.901 0.979 1.049 0.854     solcast (2024–25)
+
+D · rows: Solcast train 60856 | Reuniwatt train 82387 | test 4038 (2026-09-01 → 2026-10-15)
+D · calibration (sensor = a·source + b): pv1/ghi: solcast a=0.990 b=30.1, reuniwatt a=0.987 b=-2.5; pv1/dni: solcast a=0.990 b=30.1, reuniwatt a=0.987 b=-2.5; pv1/dhi: solcast a=0.990 b=30.1, reuniwatt a=0.987 b=-2.5; pv1/temp: solcast a=1.053 b=-1.3, reuniwatt a=1.180 b=-6.4; pv2/ghi: solcast a=1.009 b=11.8, reuniwatt a=0.976 b=-10.0; pv2/dni: solcast a=1.009 b=11.8, reuniwatt a=0.976 b=-10.0; pv2/dhi: solcast a=1.009 b=11.8, reuniwatt a=0.976 b=-10.0; pv2/temp: solcast a=1.107 b=-2.0, reuniwatt a=1.460 b=-15.6
+## D · transfer test (MAPE where actual > 150 MW; nMAE/RMSE/bias % of capacity)
+site                       model    n  n_mape  mape_pct  nmae_pct  rmse_pct  bias_pct
+ pv1                       S_raw 2019    1737     3.422     1.560     2.714     0.609
+ pv1                           R 2019    1737     4.169     2.066     3.162     1.536
+ pv1 S_on_solcast (Sep–Nov 2025) 3417    2921     4.594     1.968     3.674     1.106
+ pv1                       S_cal 2019    1737     5.310     2.502     3.249    -1.770
+ pv1             reuniwatt_power 2019    1737     6.154     3.160     4.090     0.803
+ pv2                           R 2019    1928     6.206     3.216     5.137     1.495
+ pv2                       S_raw 2019    1928     7.327     3.417     5.308     1.858
+ pv2                       S_cal 2019    1928     7.497     3.740     5.213    -1.570
+ pv2             reuniwatt_power 2019    1928     7.675     4.384     6.001     2.064
+ pv2 S_on_solcast (Sep–Nov 2025) 3417    3247    10.499     6.422     9.039    -2.982
+
+## D2 · MAPE by Gulf hour and model
+site  gulf_hour     R  S_cal  S_raw  reuniwatt_power
+ pv1          7  6.34  10.13   7.20             7.58
+ pv1          8  3.97   4.30   4.75             5.86
+ pv1          9  2.84   2.83   2.77             4.00
+ pv1         10  3.22   2.48   1.97             4.16
+ pv1         11  2.65   2.64   1.57             5.57
+ pv1         12  3.07   2.62   1.80             6.38
+ pv1         13  4.41   3.90   2.60             7.04
+ pv1         14  4.50   5.37   3.03             6.24
+ pv1         15  5.25   9.05   4.26             6.71
+ pv1         16  6.10  10.85   5.21             8.19
+ pv1         17  6.87  16.99   8.10            11.35
+ pv2          6 10.50  45.56  16.49            16.51
+ pv2          7 14.14  18.22  14.11            12.71
+ pv2          8  9.18  11.43   9.41            11.00
+ pv2          9  4.77   5.82   4.57             6.47
+ pv2         10  3.13   3.31   2.30             3.34
+ pv2         11  3.24   3.33   2.55             3.15
+ pv2         12  3.88   3.93   3.21             3.30
+ pv2         13  3.52   3.46   2.86             3.94
+ pv2         14  5.03   4.75   5.14             7.57
+ pv2         15  5.40   5.30   6.38            10.24
+ pv2         16  8.14   8.04  13.94            11.29
+ pv2         17  8.05  10.90  20.21            11.92
