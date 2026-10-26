@@ -1,28 +1,27 @@
-# Solcast vs Reuniwatt: feature comparison and transfer decision
+# Solcast vs Reuniwatt: feature comparison
 
-**Question:** can we train on Solcast history and run inference with Reuniwatt forecasts?
+**Question:** are Solcast and Reuniwatt features similar enough to train on Solcast and run inference with Reuniwatt?
 
-**Short answer:** partly.
-- **PV1:** yes, it works in the months we can test.
-- **PV2:** not proven.
-- **Winter:** untested.
-- **Shared features:** only GHI, temperature and the computed sun-position and time features should be shared between the two sources. Cloud opacity, DNI, DHI and wind should not.
+**Short answer, at feature level:**
+- **Usable across the two sources:** temperature and GHI. GHI is usable only if we account for the satellite reading about 5% low at midday, in winter and spring, and on dusty days.
+- **Not usable across the two sources:** cloud opacity, DNI, DHI and wind. They are defined or scaled differently, or agree too weakly.
+- **Still to do:** a model-level transfer test, covered in Next steps.
 
-Source notebook: `notebooks/pipeline/07_analysis_solcast_vs_reuniwatt_features.ipynb`. Full output: `notebooks/pipeline/results/feature_comparison_report.txt`.
+Source notebook: `notebooks/pipeline/07_analysis_solcast_vs_reuniwatt_features.ipynb` (parts 1–4). Full output: `notebooks/pipeline/results/feature_comparison_report.txt`.
 
 ## Data used
 
 | Source | Table | Period used |
 |---|---|---|
 | Reuniwatt satellite (observed) | `ewec_dev_reuniwatt.bronze.satellite_weather_sts` | 2023-01-01 → 2024-12-31 |
-| Reuniwatt forecasts | `ewec_dev_reuniwatt.bronze.solar_forecast_raw` | Jul–Oct 2026 (values are null before ~3 Jul 2026) |
-| Solcast | `ewec_dev_powerops.bronze.pv1_history_solcast` / `pv2_history_solcast` | 2023-01-01 → 2025-11-18 |
-| Plant sensors and actual MW | `ewec_dev_powerops.bronze.power_contango_minute_pv` | same periods |
+| Solcast | `ewec_dev_powerops.bronze.pv1_history_solcast` / `pv2_history_solcast` | 2023-01-01 → 2024-12-31 |
+| Plant sensors | `ewec_dev_powerops.bronze.power_contango_minute_pv` | 2023-01-01 → 2024-12-31 |
 
 - **Plant naming:** PV1 is the small plant (935 MW) and PV2 the large plant (1,584 MW). The Solcast tables follow the Phase 1 naming, which is swapped: the Solcast "pv2" table is our PV1.
 - **Time handling:** all data is resampled to 15 min, labelled at the period end, in UTC.
 - **Daytime filter:** irradiance metrics use daytime rows only (clear-sky GHI > 50 W/m²).
 - **Bias sign:** bias is satellite − Solcast unless stated otherwise.
+- **Reuniwatt data used:** throughout, "satellite" means the Reuniwatt observed satellite table, which is fully filled for 2023–2024.
 
 ## 1. Mean, bias, MAE and RMSE per feature and plant
 
@@ -146,50 +145,15 @@ The full month-by-month table is in section 4 of the report.
 - **Cloudy/dusty days:** GHI differs strongly from one 15-min step to the next; each source shows cloud that the other misses.
 - **Reading the cloud panel:** the satellite and Solcast cloud opacity are drawn on the same axis. The satellite uses a 0–1 scale, so its line looks flat next to Solcast's 0–100.
 
-## 5. Transfer test: train on Solcast, predict with Reuniwatt forecasts
-
-**Setup:**
-- **Models:** one LightGBM model per plant, trained on Solcast day-ahead features and actual MW from 2024-01-01 to 2025-11-18. It is then run on Reuniwatt day-ahead forecasts.
-- **Scope:** daytime only, 06:00–18:00 Gulf.
-- **Metrics:** MAPE where actual > 150 MW; nMAE as % of capacity.
-
-**Comparison models:**
-- the Reuniwatt power forecast itself;
-- a model trained on Reuniwatt data from the months before each test month;
-- a no-weather model that uses only sun position and time.
-
-**Valid test months:** Aug, Sep and Oct 2026 (October is partial). Reuniwatt values are null before ~3 Jul 2026, so July is partly empty and is excluded here. The test code now drops rows without Reuniwatt values.
-
-| Model | PV1 MAPE | PV1 nMAE | PV2 MAPE | PV2 nMAE |
-|---|---|---|---|---|
-| Solcast-trained · GHI, DNI, DHI, temp + computed | **4.83** | **2.13** | 10.06 | 4.61 |
-| Solcast-trained · GHI, temp + computed | 5.42 | 2.41 | 10.52 | 4.96 |
-| Reuniwatt-trained | 4.92 | 2.28 | **8.61** | **4.40** |
-| No weather (computed only) | 5.16 | 2.37 | 9.05 | 4.50 |
-| Reuniwatt power forecast | 7.77 | 3.95 | 10.30 | 5.70 |
-
-MAPE by month, Solcast-trained (full) vs the Reuniwatt power forecast:
-
-| Plant | Aug 2026 | Sep 2026 | Oct 2026 |
-|---|---|---|---|
-| PV1 | 7.18 vs 10.61 | 3.02 vs 5.80 | 4.28 vs 6.90 |
-| PV2 | 13.78 vs 15.16 | 5.76 vs 7.33 | 10.63 vs 8.41 |
-
-**Reading:**
-- **PV1:** the Solcast-trained model beats Reuniwatt's own power forecast in every month and matches the Reuniwatt-trained model.
-- **PV2:** the Solcast-trained model loses to Reuniwatt in October and is worse than the no-weather model. For PV2, Reuniwatt weather fed into a Solcast-trained model adds nothing so far.
-- **Easy test months:** the months tested are mostly clear (summer and autumn). Even the no-weather model does well, so this test does not yet show how much the weather inputs are worth.
-
-**Caveats:**
-- **Satellite vs forecast:** sections 1–4 compare Solcast with Reuniwatt *satellite observations*, whereas the transfer test uses Reuniwatt *forecasts*.
-- **Weak Reuniwatt-trained comparison:** that model has only a few months of real Reuniwatt data to learn from.
-- **Winter untested:** winter and spring cannot be tested until Reuniwatt has that data, and that is when the GHI bias is largest (−50 to −90 W/m²).
-
 ## Conclusion and next steps
 
-1. **Train on Solcast, infer with Reuniwatt:** feasible for PV1, not proven for PV2, untested in winter.
-2. **Shared feature set:** GHI, temperature and the computed sun-position and time features.
-3. **Excluded features:** cloud opacity (different scale and behaviour), DNI and DHI (different direct/diffuse split) and wind (weak agreement).
-4. **Re-test in winter:** repeat the transfer test on Dec 2026 – Mar 2027 data, when the satellite GHI bias is largest.
-5. **Parallel model:** keep a Reuniwatt-trained model that is retrained as Reuniwatt history builds up, and switch to it once it is consistently better.
-6. **Open input:** the exact plant coordinates used by Solcast and Reuniwatt.
+1. **Usable across the two sources:**
+   - Temperature: corr 0.98, bias ≤ 1 °C.
+   - GHI: corr 0.92–0.93, bias −28 W/m², with the satellite reading about 5% low.
+2. **Do not share between the sources:**
+   - cloud opacity (different scale and behaviour);
+   - DNI and DHI (different direct/diffuse split);
+   - wind (weak agreement).
+3. **Next, model-level transfer test:** train on Solcast and run the model on the Reuniwatt satellite data for 2023–2024, scored against actual MW. This covers winter and the dusty months. It answers whether a Solcast-trained model works on Reuniwatt inputs, but not how accurate the day-ahead forecast will be, because satellite data is observed weather, not a forecast.
+4. **Later, with Reuniwatt forecasts:** repeat the test with the Reuniwatt forecasts once enough history has built up. They only have values from ~3 Jul 2026, so winter coverage arrives in Dec 2026 – Mar 2027.
+5. **Open input:** the exact plant coordinates used by Solcast and Reuniwatt.
